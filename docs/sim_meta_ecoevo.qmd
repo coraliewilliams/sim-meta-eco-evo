@@ -1,0 +1,185 @@
+---
+title: "Modelling approaches for meta-analyses with dependent effect sizes in ecology and evolution: A simulation study"
+author: "Coralie Williams"
+date: "Last compiled on `r format(Sys.time(), '%d %B, %Y')`"
+format:
+  html:
+    toc: true
+    toc-location: left
+    toc-depth: 2
+    theme: materia
+    embed-resources: true
+    code-fold: show
+    code-tools: true
+    number-sections: false
+editor_options: 
+  chunk_output_type: console
+---
+
+# Overview
+
+This page is a summary of the results from a simulation study comparing different modelling approaches for meta-analyses with dependent effect sizes in ecology and evolution. 
+
+# Study 1
+
+
+```{r}
+# load libraries
+library(pacman)
+p_load(tidyverse, metafor, simstudy, ggplot2, ggpubr,
+       dplyr, broom, knitr, kableExtra, here, cowplot,
+       ggdist, gridExtra)
+
+# load data
+load("~/Projects/sim-meta-eco-evo/output/study1/all_results_study1.RDATA")
+results <- combined_dat
+
+# create new variables for model type and CR method
+results <- results |>
+  mutate(
+    model_type = case_when(
+    str_detect(model, "FE") ~ "FE",
+    str_detect(model, "RE") ~ "RE",
+    str_detect(model, "ML-VCV") ~ "ML-VCV",
+    str_detect(model, "ML") ~ "ML"),
+    CR = case_when(
+      str_detect(model, "-CR0") ~ "CR0",
+      str_detect(model, "-CR1") ~ "CR1",
+      str_detect(model, "-CR2") ~ "CR2",
+      TRUE ~ "none"))
+
+# reorder factor levels for model_type
+results$model_type <- factor(results$model_type, levels=c("FE", "RE", "ML", "ML-VCV"))
+
+#### IMPORTANT: need to reduce dataset
+#### rho.hat values are for ML-VCV models only
+# combined values for rho.hat for model type FE, RE, and ML
+
+
+
+## check: table(results$rho.hat, results$rho)
+```
+
+
+
+```{r}
+# derive confidence interval width
+results <- results %>%
+  group_by(model, scenario) %>%
+  mutate(mu_ci_width = mu_ci_ub - mu_ci_lb)
+
+
+# create data for only CR0
+resmain <- results %>%
+  filter(CR_method != "CR1" & CR_method != "CR2")
+
+```
+
+## 1. For each scenario
+
+### $\sigma_u$ = 0.05, $\sigma_s$ = 0.05, $\rho$ = 0.2
+
+```{r}
+rs1 <- resmain %>%
+   filter(sigma2.s == 0.05 & sigma2.u == 0.05 & rho == 0.2)
+```
+
+
+::: {.panel-tabset}
+
+## Bias
+
+Small study (k=20)
+
+```{r}
+rs1_small <- rs1 %>%
+  filter(k.studies == 20)
+
+# plot
+mu_est_plot <- ggplot(rs1_small, aes(x=factor(rho.hat), y=mu_est, color=CR_method, fill=CR_method)) + 
+  stat_halfeye() +
+  scale_color_manual(values=rep(c("#7297C7", "#FECA91", "#A5D9A5", "#F4756B"), 4))+
+  scale_fill_manual(values=alpha(rep(c("#7297C7", "#FECA91", "#A5D9A5", "#F4756B"), 4), 0.4)) +
+  labs(title="μ Estimate",x="Model", y = "μ Estimate")+
+  geom_boxplot(width=0.4)+
+  facet_wrap(~ factor(model_type))+
+  geom_hline(yintercept=0.2, colour="darkgray")+ # mu=0.2
+  theme_bw()
+mu_est_plot
+```
+
+
+Summary table for 
+
+
+```{r}
+rs1_small %>%
+  group_by(model_type, CR_method, rho.hat) %>%
+  summarise(mean_mu_bias = signif(mean(mu_est - mu), 3), 
+            mean_mu_mse = signif(mean(mu_mse), 3), 
+            mean_ci_width = signif(mean(mu_ci_width), 3), 
+            mean_coverage = signif(mean(mu_cov), 3)) %>%
+  knitr::kable()
+
+```
+
+
+
+
+Large study (k=50)
+
+```{r}
+rs1_large <- rs1 %>%
+  filter(k.studies == 50)
+
+
+
+```
+
+
+## MSE
+
+
+## Coverage
+
+
+## Confidence interval width
+
+
+:::
+
+
+
+
+## 2. Over all scenarios
+
+::: {.panel-tabset}
+
+## Bias
+
+## Coverage
+
+## CI width
+
+
+:::
+
+
+## 3. Supplementary: CRVE variants 
+
+::: {.panel-tabset}
+
+## Bias
+
+
+## MSE
+
+
+## Coverage
+
+
+:::
+
+
+
+# Study 2
