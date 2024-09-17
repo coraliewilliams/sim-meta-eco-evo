@@ -5,14 +5,10 @@
 # Load libraries
 library(dplyr)
 
-# Load scenarios table
-scen <- read.csv("output/study1/job_array_study1.csv")
-scen_rho.hat <- scen |> select(sim, scenario, rho.hat)
-
 # Load the datasets
 load("output/study1/collated_sim_study1_results_set1.RDATA")
 dat1 <- dat
-dat1 <- dat1 |> merge(scen_rho.hat)
+dat1$rho.hat <- rep(0.2, length(dat1$rho))
 
 load("output/study1/collated_sim_study1_results_set2.RDATA")
 dat2 <- dat
@@ -28,7 +24,6 @@ save(combined_dat, file="output/study1/all_results_study1.RDATA")
 
 # Optionally, clean up the environment by removing the individual datasets
 rm(dat, dat1, dat2, dat3)
-
 
 
 ################################################################################

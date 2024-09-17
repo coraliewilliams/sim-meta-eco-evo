@@ -1,0 +1,15 @@
+#!/bin/bash
+	
+#PBS -N sim_meta_study2
+#PBS -l select=1:ncpus=1:mem=1gb
+#PBS -l walltime=00:08:00
+#PBS -J 1-10000
+
+#working direction
+cd /srv/scratch/z5394590/phylo_meta_sandwich/main/study2/
+
+module purge
+module add r/4.3.1
+
+Rscript sim_meta_study2.R
+

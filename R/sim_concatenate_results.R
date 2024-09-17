@@ -4,7 +4,7 @@
 
 library(dplyr)
 
-home.wd <- "/srv/scratch/z5394590/phylo_meta_sandwich/main/study1/results/set3"
+home.wd <- "/srv/scratch/z5394590/phylo_meta_sandwich/main/study2/results/set3"
 
 # get a list of all the individual result files
 res.list <- list.files(path = home.wd, pattern = "^res_.*\\.RDATA$", full.names = TRUE)
@@ -26,7 +26,7 @@ for (i in seq_along(res.list)) {
 dat <- bind_rows(dat_list)
 
 # save the single result data frame within the results folder
-save(dat, file = file.path("/srv/scratch/z5394590/phylo_meta_sandwich/main/study1/results", "collated_sim_study1_results_set3.RDATA"))
+save(dat, file = file.path("/srv/scratch/z5394590/phylo_meta_sandwich/main/study2/results", "collated_sim_study2_results_set3.RDATA"))
 
 # clean up
 rm(dat_list)
