@@ -1,241 +1,212 @@
 ################################################################################
-# Combine all results
-################################################################################
-
-# Load libraries
-library(dplyr)
-
-# Load the datasets
-load("output/study2/collated_sim_study2_results_set1.RDATA")
-dat1 <- dat
-
-load("output/study2/collated_sim_study2_results_set2.RDATA")
-dat2 <- dat
-
-load("output/study2/collated_sim_study2_results_set3.RDATA")
-dat3 <- dat
-
-# Combine the datasets
-combined_dat <- rbind(dat1, dat2, dat3)
-
-# save 
-save(combined_dat, file="output/study2/all_results_study2.RDATA")
-
-# Optionally, clean up the environment by removing the individual datasets
-rm(dat, dat1, dat2, dat3)
-
-
-################################################################################
 # Plot results
 ################################################################################
 
-####### Notes
-# Try to load Rdata of all sims from OSF repo 
-# Load the Rdata file from URL
-
-
+load("~/Projects/sim-meta-eco-evo/output/study2/all_results_study2.RDATA")
 results <- combined_dat
 
-results$model <- factor(results$model, levels=c("FE", "RE", "ML", "ML-VCV",
-                                                "FE-CR0", "RE-CR0", "ML-CR0", "ML-VCV-CR0",
-                                                "FE-CR1", "RE-CR1", "ML-CR1", "ML-VCV-CR1",
-                                                "FE-CR2", "RE-CR2", "ML-CR2", "ML-VCV-CR2"))
+######## Notes #############################
+# Try to load Rdata of all sims from OSF repo 
+# Load the Rdata file from URL in final script
+########################################### 
 
-###############################################################################
-# Filter by study size
-
-results <- results %>%
-  filter(k.studies == 20 & sigma2.s == 0.05 & sigma2.u == 0.05)
-
-# Filter out all CR0 and CR2 models
-results <- results %>%
-  filter(CR_method != "CR0" & CR_method != "CR2")
-
-
-###############################################################################
-
-# load libraries
-library(ggplot2)
-library(tidyverse)
-library(cowplot)
-library(ggdark)
-library(ggplot2)
-library(ggdist)  # for half-eye plots
-library(gridExtra)
-
-
-# Derive coverage proportion per model ###### ----> separate by rho and rho.hat
-cov <- results %>%
-  group_by(model, CR_method) %>%
-  summarise(cov_prop = mean(mu_cov, na.rm = TRUE))
-
-# Derive variance of mu estimate per model
-mu_var <- results %>%
-  group_by(model, CR_method) %>%
-  summarise(mu_var = var(mu_est, na.rm = TRUE))
-
-
-###############################################################################
-
-# Set up plot labels 
-plot_labels <- list(
-  comp.time = "Runtime (seconds)",
-  mu_est = "Mean μ Estimate",
-  mu_bias = "Bias μ Estimate",
-  mu_mse = "MSE μ Estimate",
-  mu_cov = "Coverage",
-  mu_ci_low = "μ CI Lower Bound",
-  mu_ci_high = "μ CI Upper Bound",
-  mu_ci_width = "μ CI Width",
-  s2_sp_bias = "σ2 (species random effect) bias",
-  s2_phylo_bias = "σ2 (phylo random effect) bias",
-  s2_resid_bias = "Residual σ2 bias"
-)
-
-
-###############################################################################
-
-
-# Plot of mu estimate vs models
-mu_est_plot <- ggplot(results, aes(x=factor(model), y=mu_est, color=CR_method, fill=CR_method)) + 
-  stat_halfeye() +
-  scale_color_manual(values=rep(c("#7297C7", "#FECA91", "#A5D9A5", "#F4756B"), 4))+
-  scale_fill_manual(values=alpha(rep(c("#7297C7", "#FECA91", "#A5D9A5", "#F4756B"), 4), 0.4)) +
-  labs(title="μ Estimate",x="Model", y = "μ Estimate")+
-  geom_boxplot(width=0.4)+
-  facet_wrap(~ factor(rho))+
-  geom_hline(yintercept=0.2, colour="darkgray")+ # mu=0.2
-  theme_bw()
-mu_est_plot
-
-
-# Plot of mu estimate MSE vs models
-mu_mse_plot <- ggplot(results, aes(x=factor(model), y=mu_mse, color=CR_method, fill=CR_method)) + 
-  stat_halfeye() +
-  scale_color_manual(values=rep(c("#7297C7", "#FECA91", "#A5D9A5", "#F4756B"), 4))+
-  scale_fill_manual(values=alpha(rep(c("#7297C7", "#FECA91", "#A5D9A5", "#F4756B"), 4), 0.4)) +
-  labs(title="Mean Squared Error of μ estimate",x="Model", y = "MSE of μ estimate")+
-  facet_wrap(~ factor(rho))+
-  geom_boxplot(width=0.4)+
-  theme_bw()
-mu_mse_plot
-
-# Plot of variance of mu estimate vs models
-mu_var_plot <- ggplot(mu_var, aes(x=model, y=mu_var, color=CR_method, fill=CR_method)) +
-  geom_bar(stat="identity", position=position_dodge(width=0.9), alpha=0.6) +
-  scale_color_manual(values=rep(c("#7297C7", "#FECA91", "#A5D9A5", "#F4756B"), 4))+
-  scale_fill_manual(values=alpha(rep(c("#7297C7", "#FECA91", "#A5D9A5", "#F4756B"), 4), 0.4)) +
-  scale_y_continuous(breaks=seq(0,0.05,0.01), limits=c(0, 0.05)) +
-  labs(title="Variance of μ estimate (over 100 replications)",
-       x="Model",
-       y="Variance of μ estimate") +
-  theme_bw()
-mu_var_plot
-
-
-# Plot the coverage proportion for each model
-cov_plot <- ggplot(cov, aes(x=model, y=cov_prop, color=CR_method, fill=CR_method)) +
-  geom_bar(stat="identity", position=position_dodge(width=0.9), alpha=0.6) +
-  scale_color_manual(values=rep(c("#7297C7", "#FECA91", "#A5D9A5", "#F4756B"), 4))+
-  scale_fill_manual(values=alpha(rep(c("#7297C7", "#FECA91", "#A5D9A5", "#F4756B"), 4), 0.4)) +
-  scale_y_continuous(breaks=seq(0,1,0.1), limits=c(0, 1)) +
-  labs(title="Coverage proportion of μ estimate (over 100 replications)",
-       x="Model",
-       y="Coverage proportion") +
-  theme_bw()
-cov_plot
+###
+# load librairies
+library(pacman)
+p_load(tidyverse, metafor, simstudy, ggplot2, ggpubr,
+       dplyr, broom, knitr, kableExtra, here, cowplot,
+       ggdist, gridExtra)
 
 
 
+# reorder factor levels for model_type and model
+results$model <- factor(results$model, levels=c("ML-VCV-0.5", "ML-VCV-0.5-CR0", "ML-VCV-0.5-CR1",
+                                                "PML", "PML-CR0", "PML-CR1",
+                                                "PML-VCV-02", "PML-VCV-0.2-CR0", "PML-VCV-0.2-CR1",
+                                                "PML-VCV-05", "PML-VCV-0.5-CR0", "PML-VCV-0.5-CR1",
+                                                "PML-VCV-08", "PML-VCV-0.8-CR0", "PML-VCV-0.8-CR1"))
 
-# Plot of sigma2.e estimate MSE vs models
-sigma2.e_mse_plot <- ggplot(results, aes(x=factor(model), y=sigma.u_mse, color=CR_method, fill=CR_method)) + 
-  stat_halfeye() +
-  scale_color_manual(values=rep(c("#7297C7", "#FECA91", "#A5D9A5", "#F4756B"), 4))+
-  scale_fill_manual(values=alpha(rep(c("#7297C7", "#FECA91", "#A5D9A5", "#F4756B"), 4), 0.4)) +
-  labs(title="Mean Squared Error of effect size level variance estimate",x="Model", y = "MSE of variance estimate of effect size level random effect")+
-  geom_boxplot(width=0.4)+
-  theme_bw()
-sigma2.e_mse_plot
-
+# check
+# table(results$model)
 
 
-# Plot of sigma.s estimate MSE vs models
+########
+# derive confidence interval width
+results <- results |>
+  group_by(model, scenario) |>
+  mutate(mu_ci_width = mu_ci_ub - mu_ci_lb)
 
-results_ml <- results %>% 
-  filter(model %in% c("ML", "ML-VCV",
-                      "ML-CR0", "ML-VCV-CR0",
-                      "ML-CR1", "ML-VCV-CR1",
-                      "ML-CR2", "ML-VCV-CR2"))
-
-sigma2.s_mse_plot <- ggplot(results_ml, aes(x=factor(model), y=sigma.s_mse, color=CR_method, fill=CR_method)) + 
-  stat_halfeye() +
-  scale_color_manual(values=rep(c("#7297C7", "#FECA91", "#A5D9A5", "#F4756B"), 4))+
-  scale_fill_manual(values=alpha(rep(c("#7297C7", "#FECA91", "#A5D9A5", "#F4756B"), 4), 0.4)) +
-  labs(title="Mean Squared Error of study level variance estimate",x="Model", y = "MSE of variance estimate of study level random effect")+
-  geom_boxplot(width=0.4)+
-  theme_bw()
-sigma2.s_mse_plot
-
-
-
-# Plot the coverage proportion for each model
-# SPLIT BY STUDY NUMBER:
-# CR1 and CR2 will be better for small sample sizes
-cov_plot <- ggplot(cov, aes(x=model, y=cov_prop, color=CR_method, fill=CR_method)) +
-  geom_bar(stat="identity", position=position_dodge(width=0.9), alpha=0.6) +
-  scale_color_manual(values=rep(c("#7297C7", "#FECA91", "#A5D9A5", "#F4756B"), 4))+
-  scale_fill_manual(values=alpha(rep(c("#7297C7", "#FECA91", "#A5D9A5", "#F4756B"), 4), 0.4)) +
-  scale_y_continuous(breaks=seq(0,1,0.1), limits=c(0, 1)) +
-  labs(title="Coverage proportion of μ estimate",
-       x="Model",
-       y="Coverage proportion") +
-  theme_bw()
-cov_plot
-
-
-
+# derive RMSE
+results <- results |>
+  group_by(model, scenario) |>
+  mutate(mu_rmse = sqrt(mean((mu_est - mu)^2)))
 
 
 ################################################################################
+# ------------------------ PLOTS: All conditions ----------------------------
+################################################################################
 
-# Function to plot performance measures ------------
-
-plot_results <- function(res, variable_to_plot, name="res", save=TRUE) {
-  
-  # Reorder models for plots
-  res$model <- factor(res$model, levels=c("brms", "MCMCglmm", "pglmm", "glmmTMB"))
-  
-  # Create ggplot object
-  gg <- ggplot(res, aes(x=model, y=get(variable_to_plot), color=model, fill=model)) +
-    stat_halfeye() +  # Replace with half-eye plot from ggdist
-    geom_point(position=position_jitterdodge(dodge.width=0.9), alpha=0.6) +  # Add points
-    geom_hline(aes(yintercept=0), color="white") + # Add line at zero
-    geom_boxplot(width=0.1, alpha=0.4) +
-    scale_color_manual(values=c("#7297C7", "#FECA91", "#A5D9A5", "#F4756B")) +
-    scale_fill_manual(values=alpha(c("#7297C7", "#FECA91", "#A5D9A5", "#F4756B"), 0.4)) + # Fill with semi-transparent pastels
-    labs(title=sprintf("Plot of %s", variable_to_plot),
-         x="Package",
-         y=variable_to_plot) +
-    scale_shape_manual(name="Species Size", values=c(16, 17, 18, 19)) +
-    facet_wrap(~ factor(species_size),
-               labeller = labeller(species_size = function(x) paste("Species size:", x)))
-  
-  if (save) {
-    filename <- sprintf("output/sim_simple/%s_%s_%diter_sim_simple.png",
-                        name, variable_to_plot, iters)
-    ggsave(filename, plot = gg, width = 8, height = 4)
-  }
-  
-  return(gg)
-}
+###
+res <- results |> 
+  filter(CR_method %in% c("none", "CR1")) 
 
 
-# Plot each performance measure
-plot_results(results, "run_time")
-plot_results(results, "mu_bias")
-plot_results(results, "mu_mse")
-plot_results(results, "mu_ci_width")
-plot_results(results, "s2_sp_bias")
-plot_results(results, "s2_phylo_bias")
-plot_results(results, "s2_resid_bias")
+# derive coverage
+cov_all <- results |>
+  group_by(model, rho, sigma2.n, sigma2.p, sigma2.s, sigma2.u) |>
+  summarise(cov_prop = mean(mu_cov, na.rm = TRUE))
+
+
+
+####################
+# (1) Bias 
+####################
+
+mu_est_plot_all <-
+  ggplot(res, aes(x=factor(model), y=mu_est, color=model, fill=model)) + 
+  stat_halfeye() +
+  scale_color_manual(values=rep(c("#7297C7", "#FECA91"), 6))+
+  scale_fill_manual(values=alpha(rep(c("#7297C7", "#FECA91"), 6), 0.4)) +
+  labs(title="Overall mean estimate",x="Model", y = "mu estimate")+
+  geom_boxplot(width=0.4)+
+  geom_hline(yintercept=0.2, colour="darkgray")+
+  facet_wrap(~factor(rho))+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+mu_est_plot_all
+ggsave("output/study2/All/mu_est_all.png", plot = mu_est_plot_all, width = 14, height = 8)
+
+
+
+
+####################
+# (2) MSE
+####################
+
+
+mu_mse_plot_all <-
+  ggplot(res, aes(x=factor(model), y=mu_mse, color=model, fill=model)) + 
+  stat_halfeye() +
+  scale_color_manual(values=rep(c("#7297C7", "#FECA91"), 6))+
+  scale_fill_manual(values=alpha(rep(c("#7297C7", "#FECA91"), 6), 0.4)) +
+  labs(title="Mean Squared Error (MSE) of overall mean estimate",x="Model", y = "MSE")+
+  geom_boxplot(width=0.4)+
+  facet_wrap(~factor(rho))+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+mu_mse_plot_all
+ggsave("output/study2/All/mu_mse_all.png", plot = mu_mse_plot_all, width = 14, height = 8)
+
+
+
+
+
+####################
+# (3) RMSE
+####################
+
+mu_rmse_plot_all <-
+  ggplot(res, aes(x=factor(model), y=mu_rmse, color=model, fill=model)) + 
+  stat_halfeye() +
+  scale_color_manual(values=rep(c("#7297C7", "#FECA91"), 6))+
+  scale_fill_manual(values=alpha(rep(c("#7297C7", "#FECA91"), 6), 0.4)) +
+  labs(title="Root Mean Squared Error (RMSE) of overall mean estimate",x="Model", y = "RMSE")+
+  geom_boxplot(width=0.4)+
+  facet_wrap(~factor(rho))+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+mu_rmse_plot_all
+ggsave("output/study2/All/mu_rmse_all.png", plot = mu_rmse_plot_all, width = 14, height = 8)
+
+
+
+
+
+####################
+# (4) Coverage 
+####################
+
+
+cov_plot_all <-
+  ggplot(cov_all, aes(x=factor(model), y=cov_prop, color=model, fill=model)) + 
+  stat_halfeye() +
+  scale_color_manual(values=rep(c("#7297C7", "#FECA91", "#A5D9A5"), 12))+
+  scale_fill_manual(values=alpha(rep(c("#7297C7", "#FECA91", "#A5D9A5"), 12), 0.4)) +
+  labs(title="Coverage rate of mu",x="Model", y = "Coverage rate of mu")+
+  geom_boxplot(width=0.4)+
+  geom_hline(yintercept=0.95, colour="darkgray")+ 
+  facet_wrap(~factor(rho))+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+cov_plot_all
+ggsave("output/study2/All/coverage_all.png", plot = cov_plot_all, width = 14, height = 8)
+
+
+
+
+####################
+# (5) Confidence interval widths
+####################
+
+ci_plot_all <-
+  ggplot(results, aes(x=factor(model), y=mu_ci_width, color=model, fill=model)) + 
+  stat_halfeye() +
+  scale_color_manual(values=rep(c("#7297C7", "#FECA91", "#A5D9A5"), 6))+
+  scale_fill_manual(values=alpha(rep(c("#7297C7", "#FECA91", "#A5D9A5"), 6), 0.4)) +
+  labs(title="Confidence interval width of mu",x="Model", y = "CI width")+
+  geom_boxplot(width=0.4)+
+  facet_wrap(~factor(rho))+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ci_plot_all
+ggsave("output/study2/All/ci_width_all.png", plot = ci_plot_all, width = 14, height = 8)
+
+
+
+### Filter by 
+res2 <- results |> 
+  filter(sigma2.s == 0.3, sigma2.u == 0.3) 
+
+
+
+
+
+####################
+# (6) Variance estimate u (within study)
+####################
+
+sigma.u_plot_all <-
+  ggplot(res2, aes(x=factor(model), y=sigma.u_est, color=model, fill=model)) + 
+  stat_halfeye() +
+  scale_color_manual(values=rep(c("#7297C7", "#FECA91", "#A5D9A5"), 6))+
+  scale_fill_manual(values=alpha(rep(c("#7297C7", "#FECA91", "#A5D9A5"), 6), 0.4)) +
+  labs(title="Estimate of within-study variance (s2.u)",x="Model", y = "sigma2.u")+
+  geom_boxplot(width=0.4)+
+  geom_hline(yintercept=0.3, colour="darkgray")+ 
+  facet_wrap(~factor(rho))+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+sigma.u_plot_all
+ggsave("output/study2/All/sigma2.u_estimate.png", plot = sigma.u_plot_all, width = 10, height = 8)
+
+
+####################
+# (7) Variance estimate s (between study)
+####################
+
+
+sigma.s_plot_all <-
+  ggplot(res2, aes(x=factor(model), y=sigma.s_est, color=model, fill=model)) + 
+  stat_halfeye() +
+  scale_color_manual(values=rep(c("#7297C7", "#FECA91", "#A5D9A5"), 6))+
+  scale_fill_manual(values=alpha(rep(c("#7297C7", "#FECA91", "#A5D9A5"), 6), 0.4)) +
+  labs(title="Estimate of between-study variance (s2.s)",x="Model", y = "sigma2.s")+
+  geom_boxplot(width=0.4)+
+  geom_hline(yintercept=0.3, colour="darkgray")+ 
+  facet_wrap(~factor(rho))+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+sigma.s_plot_all
+ggsave("output/study2/All/sigma2.s_estimate.png", plot = sigma.s_plot_all, width = 10, height = 8)
+
+

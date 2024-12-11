@@ -1,0 +1,240 @@
+---
+title: "Case Study: Modelling approaches for meta-analyses with dependent effect sizes in ecology and evolution"
+author: "Coralie Williams"
+date: "Last compiled on `r format(Sys.time(), '%d %B, %Y')`"
+format:
+  html:
+    page-layout: full
+    toc: true
+    toc-location: left
+    toc-depth: 2
+    theme: materia
+    embed-resources: true
+    code-fold: true
+    code-tools: true
+    number-sections: false
+editor_options: 
+  chunk_output_type: console
+---
+
+# Overview
+
+This page provides a case study to evaluate different modelling approaches for meta-analyses with dependent effect sizes in ecology and evolution. 
+
+
+```{r}
+#| echo: false
+rm(list = ls())
+
+library(pacman)
+p_load(readxl, tidyverse, metafor, ape, ggplot2, ggpubr, dplyr, broom,
+       knitr, kableExtra, here, cowplot, ggdist, gridExtra)
+```
+
+
+# Case study
+
+```{r}
+#| echo: false
+
+# link to obtain data file
+## "https://zenodo.org/records/4390539/files/Supplementary_Information_S7_-_Dataset.xlsx?download=1"
+
+# load data
+dat <- as.data.frame(read_excel("data/dat.xlsx", skip = 2))
+colnames(dat) <- tolower(gsub(" ", "_", colnames(dat)))
+colnames(dat)
+
+# load the phylogenetic tree
+tre <- read.tree("https://zenodo.org/record/4390539/files/Supplementary%20Information%20S8%20-%20Phylogenetic%20tree.tre?download=1")
+# plot(tre)
+
+# excluding the species from the phylogeny tree that are not available in the data
+tre_sub <- drop.tip(tre, which(!tre$tip.label %in% dat$species_id))
+
+# converting the non-ultrametric tree to ultrametric tree 
+tre_sub <- compute.brlen(tre_sub, power = 1)
+
+# plotting the ultrametric tree
+# plot(tre_sub)
+
+# computing the variance-covariance matrix from the phylogeny tree
+A <- vcv(tre_sub)
+
+# creating a variable to distinguish the phylogenetic component from the 
+# non-phlylogenetic component
+dat$phylo <- dat$species_id
+
+```
+
+
+```{r}
+# Fit the models
+
+mod1 <- rma.mv(zr, vz, 
+               test = "t",
+               #dfs = k.studies - 1,
+               data = dat, 
+               sparse = TRUE)
+mod1_cr0 <- robust(mod1, cluster = study_id, adjust=FALSE)
+mod1_cr1 <- robust(mod1, cluster = study_id, adjust=TRUE)
+mod1_cr2 <- robust(mod1, cluster = study_id, clubSandwich=TRUE)
+
+
+mod2 <- rma.mv(zr, vz, 
+               random = list(~ 1 |  effect_size_id),
+               test = "t",
+               #dfs = k.studies - 1,
+               data = dat, 
+               sparse = TRUE)
+mod2_cr0 <- robust(mod2, cluster = study_id, adjust=FALSE)
+mod2_cr1 <- robust(mod2, cluster = study_id, adjust=TRUE)
+mod2_cr2 <- robust(mod2, cluster = study_id, clubSandwich=TRUE)
+
+
+
+mod3 <- rma.mv(zr, vz, 
+               random = list(~ 1 | study_id, ~ 1 |  effect_size_id),
+               test = "t",
+               #dfs = k.studies - 1,
+               data = dat, 
+               sparse = TRUE)
+mod3_cr0 <- robust(mod3, cluster = study_id, adjust=FALSE)
+mod3_cr1 <- robust(mod3, cluster = study_id, adjust=TRUE)
+mod3_cr2 <- robust(mod3, cluster = study_id, clubSandwich=TRUE)
+
+
+
+#dat <- dat[order(dat$study_id, dat$effect_size_id), ] 
+#dat$effect_size_within_study_id <- ave(dat$effect_size_id, dat$study_id, FUN = seq_along)
+
+# get V matrix based on rho.hat 
+V <- vcalc(vz, cluster=study_id, obs=effect_size_id, rho=0.5, data=dat)
+#cov2cor(V[1:4,1:4])
+mod4 <- rma.mv(zr, 
+               V=V, 
+               random = list(~ 1 | study_id, ~ 1 |  effect_size_id),
+               test = "t",
+               #dfs = k.studies - 1,
+               data = dat, 
+               sparse = TRUE)
+mod4_cr0 <- robust(mod4, cluster = study_id, adjust=FALSE)
+mod4_cr1 <- robust(mod4, cluster = study_id, adjust=TRUE)
+mod4_cr2 <- robust(mod4, cluster = study_id, clubSandwich=TRUE)
+
+
+
+
+
+
+
+# model fits
+summary(mod1)
+summary(mod1_cr0)
+summary(mod1_cr1)
+summary(mod1_cr2)
+
+summary(mod2)
+summary(mod2_cr0)
+summary(mod2_cr1)
+summary(mod2_cr2)
+
+summary(mod3)
+summary(mod3_cr0)
+summary(mod3_cr1)
+summary(mod3_cr2)
+
+summary(mod4)
+summary(mod4_cr0)
+summary(mod4_cr1)
+summary(mod4_cr2)
+
+```
+
+
+
+
+
+
+```{r}
+
+# creating a matrix to store the results
+res <- matrix(NA, nrow = 10, ncol = 16)
+colnames(res) <- paste0("mod", c("1", "1_cr0", "1_cr1", "1_cr2", "2", "2_cr0", "2_cr1", "2_cr2", "3", "3_cr0", "3_cr1", "3_cr2", "4", "4_cr0", "4_cr1", "4_cr2"))
+rownames(res) <- c("s2.u", "s2.s", "s2.n", "s2.p", "est", "se", "zval",
+                   "pval", "ci.lb", "ci.ub")
+
+# storing the results
+res["s2.u",  "mod1"] <- mod1$sigma2
+res["est",   "mod1"] <- mod1$beta
+res["se",    "mod1"] <- mod1$se
+res["zval",  "mod1"] <- mod1$zval
+res["pval",  "mod1"] <- mod1$pval
+res["ci.lb", "mod1"] <- mod1$ci.lb
+res["ci.ub", "mod1"] <- mod1$ci.ub
+
+
+res["s2.u",  "mod1_cr0"] <- mod1_cr0$sigma2
+res["est",   "mod1_cr0"] <- mod1_cr0$beta
+res["se",    "mod1_cr0"] <- mod1_cr0$se
+res["zval",  "mod1_cr0"] <- mod1_cr0$zval
+res["pval",  "mod1_cr0"] <- mod1_cr0$pval
+res["ci.lb", "mod1_cr0"] <- mod1_cr0$ci.lb
+res["ci.ub", "mod1_cr0"] <- mod1_cr0$ci.ub
+
+
+res["s2.u",  "mod3"] <- res3$sigma2
+res["est",   "mod3"] <- res3$beta
+res["se",    "mod3"] <- res3$se
+res["zval",  "mod3"] <- res3$zval
+res["pval",  "mod3"] <- res3$pval
+res["ci.lb", "mod3"] <- res3$ci.lb
+res["ci.ub", "mod3"] <- res3$ci.ub
+
+res["s2.u",  "mod5"] <- res5$sigma2[2]
+res["s2.s",  "mod5"] <- res5$sigma2[1]
+res["est",   "mod5"] <- res5$beta
+res["se",    "mod5"] <- res5$se
+res["zval",  "mod5"] <- res5$zval
+res["pval",  "mod5"] <- res5$pval
+res["ci.lb", "mod5"] <- res5$ci.lb
+res["ci.ub", "mod5"] <- res5$ci.ub
+
+res["s2.u",  "mod7"] <- res7$sigma2[2]
+res["s2.s",  "mod7"] <- res7$sigma2[1]
+res["s2.n",  "mod7"] <- res7$sigma2[3]
+res["est",   "mod7"] <- res7$beta
+res["se",    "mod7"] <- res7$se
+res["zval",  "mod7"] <- res7$zval
+res["pval",  "mod7"] <- res7$pval
+res["ci.lb", "mod7"] <- res7$ci.lb
+res["ci.ub", "mod7"] <- res7$ci.ub
+
+res["s2.u",  "mod9"] <- res9$sigma2[2]
+res["s2.s",  "mod9"] <- res9$sigma2[1]
+res["s2.n",  "mod9"] <- res9$sigma2[3]
+res["s2.p",  "mod9"] <- res9$sigma2[4]
+res["est",   "mod9"] <- res9$beta
+res["se",    "mod9"] <- res9$se
+res["zval",  "mod9"] <- res9$zval
+res["pval",  "mod9"] <- res9$pval
+res["ci.lb", "mod9"] <- res9$ci.lb
+res["ci.ub", "mod9"] <- res9$ci.ub
+
+res["s2.u",  "mod11"] <- res11$sigma2[2]
+res["s2.s",  "mod11"] <- res11$sigma2[1]
+res["s2.p",  "mod11"] <- res11$sigma2[3]
+res["est",   "mod11"] <- res11$beta
+res["se",    "mod11"] <- res11$se
+res["zval",  "mod11"] <- res11$zval
+res["pval",  "mod11"] <- res11$pval
+res["ci.lb", "mod11"] <- res11$ci.lb
+res["ci.ub", "mod11"] <- res11$ci.ub
+
+res <- rbind(res, as.numeric(unname(fitstats(res3, res5, res7, res9, res11)[3, ])))
+rownames(res)[11] <- "AIC"
+
+# results
+t(round(res, 4))
+```
+
