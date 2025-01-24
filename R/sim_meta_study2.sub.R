@@ -12,12 +12,12 @@ p_load(metafor, MASS, clubSandwich, ape)
 ########## Load parameters conditions ---------------------------------------
 
 ### load job array
-tab <- read.csv("job_array_study2.csv")
+tab <- read.csv("output/study2/job_array_study2.csv")
 # tab <-  scen.tab2
 
 ### job number from pbs script
-job <- as.numeric(Sys.getenv("PBS_ARRAY_INDEX"))
-#job <- 1717 # for testing locally
+#job <- as.numeric(Sys.getenv("PBS_ARRAY_INDEX"))
+job <- 1 # for testing locally
 
 ### parameters for current job
 name <- tab$name[tab$job_number == job] 
@@ -51,7 +51,6 @@ k <- length(study)                                  # total number of estimates
 id <- seq_len(k)                                    # id of between study effect sizes 
 esid <- unlist(lapply(k.per.study, seq_len))        # id of within study effect sizes
 
-
 # simulate species indices
 species <- round(rbeta(k, 2, 2) * (k.species - 1)) + 1
 species[sample(k, k.species)] <- seq_len(k.species)
@@ -70,17 +69,16 @@ P <- P[order(as.numeric(rownames(P))), order(as.numeric(rownames(P)))]
 #P[is.nan(P)] <- 0
 
 ### simulate fixed effects
-b0 <- 0.2           # intercept
+b0 <- 0.2          # intercept
 b1 <- 0.05         # measurement type (study level) => categorical A-C 
 b2 <- -0.02        # weight between species (species level) => continuous (log)
-b3 <- 0.05           # sex (observation level) => binary 0-1
-sigma2_ws <- 0.1   # within-species variance
-
-x1 <- rep(c("A", "B", "C"), each=k.per.study) # study-level predictor
-x2 <- rnorm(k.species, 0, sqrt(sigma2_ws)) # within-species body weight
-x3 <- rep(c(rep(0, k/2), rep(1, k/2)), times = k) # observation-level predictor
+b3 <- 0.05         # sex (observation level) => binary 0-1
 
 
+
+x1 <- unlist(lapply(seq_along(k.per.study), function(i) rep(trt[i], k.per.study[i])))     # study-level predictor
+x2 <- rnorm(k.species, 0, sqrt(sigma2.n))[species]         # within-species body weight
+x3 <- factor(sample(c("0", "1"), size = k, replace = T))      # observation-level predictor
 
 
 ### simulate random effects
@@ -118,12 +116,13 @@ mi <- mvrnorm(n = 1, mu = rep(0, length(vi)), Sigma = VCV)
 
 ########### Get estimates  ------------------------------------------------------------------
 
-yi <- mu + u.u + u.s + u.n + u.p + mi
+yi <- mu + b0 + b1*x1 + b2*x2 + b3*x3 + u.u + u.s + u.n + u.p + mi
 
 
 # get simulated data
 dat <- data.frame(name = name, scenario = scen, seed = seed, job_number = job,
                   study = study, id = id, esid = esid, yi = yi, vi = vi,
+                  b0 = b0, b1 = b1, b2 = b2, b3 = b3, sigma2_ws = sigma2_ws,
                   u.u = u.u, u.s = u.s, u.n = u.n, u.p = u.p,  mi = mi)
 # save simulated data in R file
 save(list = "dat", file = paste0("data/simdat_", job, ".RDATA"))
