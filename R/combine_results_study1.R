@@ -2,7 +2,7 @@
 # Combine all results
 ################################################################################
 
-library(dplyr)
+library(tidyverse)
 
 # load result files
 load("output/study1/collated_sim_study1_results_set1.RDATA")

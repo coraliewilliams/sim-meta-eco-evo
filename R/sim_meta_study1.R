@@ -55,7 +55,7 @@ u.u <- rnorm(k, 0, sqrt(sigma2.u))
 u.s <- rnorm(k.studies, 0, sqrt(sigma2.s))[study]
 
 ### simulate sample variance 
-vi <- rbeta(k, 5, 20)    # same settings as Cinar et al., 2022
+vi <- rbeta(k, 2, 20)    # same settings as Cinar et al., 2022
 
 #### simulate sampling error
 #ei <- rnorm(k, 0, sqrt(vi))

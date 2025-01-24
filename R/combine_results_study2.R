@@ -3,7 +3,7 @@
 ################################################################################
 
 # Load libraries
-library(dplyr)
+library(tidyverse)
 
 # Load the datasets
 load("output/study2/collated_sim_study2_results_set1.RDATA")
