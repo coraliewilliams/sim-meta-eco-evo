@@ -560,7 +560,7 @@ sigma2.s_plot_mse_0.3 <-
 #### Subset by (0.3, 0.3) sigma2 conditions
 sigma2.T_plot_bias_0.3 <-
   res.c |> 
-  filter(!model_type %in% c("FE") & sigma2.s == 0.3 & sigma2.s == 0.3) |>  
+  filter(!model_type %in% c("FE") & sigma2.u == 0.3 & sigma2.s == 0.3) |>  
   ggplot(aes(x=factor(model_type), y=sigma2.total_bias, color=model_type, fill=model_type)) + 
   stat_halfeye() +
   scale_color_manual(values=col6mods[2:6], guide="none")+
@@ -574,7 +574,7 @@ sigma2.T_plot_bias_0.3 <-
 
 sigma2.T_plot_mse_0.3 <-
   res.c |> 
-  filter(!model_type %in% c("FE") & sigma2.s == 0.3 & sigma2.s == 0.3) |>  
+  filter(!model_type %in% c("FE") & sigma2.u == 0.3 & sigma2.s == 0.3) |>  
   ggplot(aes(x=factor(model_type), y=sigma2.total_mse, color=model_type, fill=model_type)) + 
   stat_halfeye() +
   scale_color_manual(values=col6mods[2:6], guide="none")+
@@ -626,7 +626,7 @@ figure3 <- sigma2.u_plot_est_0.3 /
            sigma2.T_plot_mse_0.3 +
   plot_annotation(tag_levels='A')
 
-ggsave("output/study1/Fig3/figure3_sigma2.png", plot = figure3, width = 8.5, height = 12)
+ggsave("output/study1/Fig3/figure3.png", plot = figure3, width = 8.5, height = 12)
 
 
 ### Combine into supplementary figures 

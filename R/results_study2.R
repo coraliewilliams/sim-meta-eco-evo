@@ -347,7 +347,7 @@ sigma.mean <- res.c |>
 
 
 ####################
-# (1) Variance estimates
+# (1) Variance estimates 
 ####################
 
 ## Estimate
@@ -491,11 +491,17 @@ figure5 <- sigma2.u_plot_est_0.3 /
           sigma2.p_plot_est_0.3 +
   plot_annotation(tag_levels='A')
 
-ggsave("output/study2/Figures/figure5_sigma2.png", plot = figure5, width = 8, height = 12.5)
+ggsave("output/study2/Figures/figure5.png", plot = figure5, width = 8, height = 12.5)
 
 
+### supplementary SFigure 7
+Sfigure7 <- sigma2.u_plot_est_0.05 / 
+  sigma2.s_plot_est_0.05 / 
+  sigma2.n_plot_est_0.05 / 
+  sigma2.p_plot_est_0.05 +
+  plot_annotation(tag_levels='A')
 
-
+ggsave("output/study2/SFig/Sfigure7_sigma2.png", plot = Sfigure7, width = 8, height = 12.5)
 
 
 
@@ -552,6 +558,7 @@ sigma2.s_plot_bias_0.05 <-
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
+
 sigma2.s_plot_bias_0.3 <-
   res.c |> 
   filter(!model_type %in% c("FE", "RE") & sigma2.s == 0.3) |>  
@@ -571,6 +578,41 @@ sigma2.s_plot_bias_0.3 <-
 
 
 
+## Non-phylogeny effect (n)
+sigma2.n_plot_bias_0.05 <-
+  res.c |> 
+  filter(!model_type %in% c("FE", "RE") & sigma2.n == 0.05) |>  
+  ggplot(aes(x=factor(model_type), y=sigma2.n_bias, color=model_type, fill=model_type)) + 
+  stat_halfeye() +
+  scale_color_manual(values=col6mods, guide="none")+
+  scale_fill_manual(values=alpha(col6mods, 0.4), guide="none") +
+  labs(title = TeX(""),
+       x = "",
+       y = TeX("$\\hat{\\sigma}^2_n$ bias"))+
+  geom_boxplot(width=0.4)+
+  geom_hline(aes(yintercept = 0), colour="darkgray")+ 
+  facet_wrap(~rho_lab, labeller=label_parsed)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+sigma2.n_plot_bias_0.3 <-
+  res.c |> 
+  filter(!model_type %in% c("FE", "RE") & sigma2.n == 0.3) |>  
+  ggplot(aes(x=factor(model_type), y=sigma2.n_bias, color=model_type, fill=model_type)) + 
+  stat_halfeye() +
+  scale_color_manual(values=col6mods, guide="none")+
+  scale_fill_manual(values=alpha(col6mods, 0.4), guide="none") +
+  labs(title = TeX(""),
+       x = "",
+       y = TeX("$\\hat{\\sigma}^2_n$ bias"))+
+  geom_boxplot(width=0.4)+
+  geom_hline(aes(yintercept = 0), colour="darkgray")+ 
+  facet_wrap(~rho_lab, labeller=label_parsed)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
 
 
 
@@ -584,8 +626,8 @@ sigma2.u_plot_mse_0.05 <-
   filter(sigma2.u == 0.05) |>  
   ggplot(aes(x=factor(model_type), y=sigma.u_mse, color=model_type, fill=model_type)) + 
   stat_halfeye() +
-  scale_color_manual(values=col6mods, guide="none")+
-  scale_fill_manual(values=alpha(col6mods, 0.4), guide="none") +
+  scale_color_manual(values=col5mods, guide="none")+
+  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
   labs(title = TeX("$\\sigma^2_u$=0.05"), 
        x = "", 
        y = TeX("$\\hat{\\sigma}^2_u$ MSE"))+
@@ -600,8 +642,8 @@ sigma2.u_plot_mse_0.3 <-
   filter(sigma2.u == 0.3) |>  
   ggplot(aes(x=factor(model_type), y=sigma.u_mse, color=model_type, fill=model_type)) + 
   stat_halfeye() +
-  scale_color_manual(values=col6mods, guide="none")+
-  scale_fill_manual(values=alpha(col6mods, 0.4), guide="none") +
+  scale_color_manual(values=col5mods, guide="none")+
+  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
   labs(title = TeX("$\\sigma^2_u$=0.3"), 
        x = "", 
        y = TeX("$\\hat{\\sigma}^2_u$ MSE"))+
@@ -618,8 +660,8 @@ sigma2.s_plot_mse_0.05 <-
   filter(!model_type %in% c("FE", "RE") & sigma2.s == 0.05) |>  
   ggplot(aes(x=factor(model_type), y=sigma.s_mse, color=model_type, fill=model_type)) + 
   stat_halfeye() +
-  scale_color_manual(values=col6mods, guide="none")+
-  scale_fill_manual(values=alpha(col6mods, 0.4), guide="none") +
+  scale_color_manual(values=col5mods, guide="none")+
+  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
   labs(title = TeX("$\\sigma^2_s$=0.05"), 
        x = "",
        y = TeX("$\\hat{\\sigma}^2_s$ MSE"))+
@@ -634,8 +676,8 @@ sigma2.s_plot_mse_0.3 <-
   filter(!model_type %in% c("FE", "RE") & sigma2.s == 0.3) |>  
   ggplot(aes(x=factor(model_type), y=sigma.s_mse, color=model_type, fill=model_type)) + 
   stat_halfeye() +
-  scale_color_manual(values=col6mods, guide="none")+
-  scale_fill_manual(values=alpha(col6mods, 0.4), guide="none") +
+  scale_color_manual(values=col5mods, guide="none")+
+  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
   labs(title = TeX("$\\sigma^2_s$=0.3"), 
        x = "", 
        y = TeX("$\\hat{\\sigma}^2_s$ MSE"))+
@@ -647,41 +689,102 @@ sigma2.s_plot_mse_0.3 <-
 
 
 
+## Non-phylogeny effect (n)
+sigma2.n_plot_mse_0.05 <-
+  res.c |> 
+  filter(!model_type %in% c("FE", "RE") & sigma2.n == 0.05) |>  
+  ggplot(aes(x=factor(model_type), y=sigma.s_mse, color=model_type, fill=model_type)) + 
+  stat_halfeye() +
+  scale_color_manual(values=col5mods, guide="none")+
+  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
+  labs(title = TeX("$\\sigma^2_n$=0.05"), 
+       x = "",
+       y = TeX("$\\hat{\\sigma}^2_n$ MSE"))+
+  geom_boxplot(width=0.4)+
+  facet_wrap(~rho_lab, labeller=label_parsed)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+sigma2.n_plot_mse_0.3 <-
+  res.c |> 
+  filter(!model_type %in% c("FE", "RE") & sigma2.n == 0.3) |>  
+  ggplot(aes(x=factor(model_type), y=sigma.s_mse, color=model_type, fill=model_type)) + 
+  stat_halfeye() +
+  scale_color_manual(values=col5mods, guide="none")+
+  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
+  labs(title = TeX("$\\sigma^2_s$=0.3"), 
+       x = "", 
+       y = TeX("$\\hat{\\sigma}^2_s$ MSE"))+
+  geom_boxplot(width=0.4)+
+  facet_wrap(~rho_lab, labeller=label_parsed)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+## Phylogeny effect (p)
+sigma2.p_plot_mse_0.05 <-
+  res.c |> 
+  filter(!model_type %in% c("FE", "RE") & sigma2.p == 0.05) |>  
+  ggplot(aes(x=factor(model_type), y=sigma.s_mse, color=model_type, fill=model_type)) + 
+  stat_halfeye() +
+  scale_color_manual(values=col5mods, guide="none")+
+  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
+  labs(title = TeX("$\\sigma^2_p$=0.05"), 
+       x = "",
+       y = TeX("$\\hat{\\sigma}^2_p$ MSE"))+
+  geom_boxplot(width=0.4)+
+  facet_wrap(~rho_lab, labeller=label_parsed)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+sigma2.p_plot_mse_0.3 <-
+  res.c |> 
+  filter(!model_type %in% c("FE", "RE") & sigma2.p == 0.3) |>  
+  ggplot(aes(x=factor(model_type), y=sigma.s_mse, color=model_type, fill=model_type)) + 
+  stat_halfeye() +
+  scale_color_manual(values=col5mods, guide="none")+
+  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
+  labs(title = TeX("$\\sigma^2_p$=0.3"), 
+       x = "", 
+       y = TeX("$\\hat{\\sigma}^2_p$ MSE"))+
+  geom_boxplot(width=0.4)+
+  facet_wrap(~rho_lab, labeller=label_parsed)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+
+### supplementary SFigure 8
+Sfigure8 <- sigma2.u_plot_mse_0.05 / 
+  sigma2.s_plot_mse_0.05 / 
+  sigma2.n_plot_mse_0.05 / 
+  sigma2.p_plot_mse_0.05 +
+  plot_annotation(tag_levels='A')
+
+ggsave("output/study2/SFig/Sfigure8_sigma2_mse.png", plot = Sfigure8, width = 8, height = 12.5)
+
+
+
+### supplementary SFigure 9
+Sfigure9 <- sigma2.u_plot_mse_0.3 / 
+  sigma2.s_plot_mse_0.3 / 
+  sigma2.n_plot_mse_0.3 / 
+  sigma2.p_plot_mse_0.3 +
+  plot_annotation(tag_levels='A')
+
+ggsave("output/study2/SFig/Sfigure9_sigma2_mse.png", plot = Sfigure9, width = 8, height = 12.5)
+
+
+
 
 
 ####################
 # (3) Total variance estimate
 ####################
-
-#### Subset by (0.3, 0.3) sigma2 conditions
-sigma2.T_plot_bias_0.3 <-
-  res.c |> 
-  filter(!model_type %in% c("FE") & sigma2.s == 0.3 & sigma2.s == 0.3) |>  
-  ggplot(aes(x=factor(model_type), y=sigma2.total_bias, color=model_type, fill=model_type)) + 
-  stat_halfeye() +
-  scale_color_manual(values=col6mods[2:6], guide="none")+
-  scale_fill_manual(values=alpha(col6mods[2:6], 0.4), guide="none") +
-  labs(title = "", x = "", y = TeX("$\\hat{\\sigma}^2_{total}$ bias"))+
-  geom_boxplot(width=0.4)+
-  geom_hline(yintercept=0, colour="darkgray")+ 
-  facet_wrap(~rho_lab, labeller=label_parsed)+
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-sigma2.T_plot_mse_0.3 <-
-  res.c |> 
-  filter(!model_type %in% c("FE") & sigma2.s == 0.3 & sigma2.s == 0.3) |>  
-  ggplot(aes(x=factor(model_type), y=sigma2.total_mse, color=model_type, fill=model_type)) + 
-  stat_halfeye() +
-  scale_color_manual(values=col6mods[2:6], guide="none")+
-  scale_fill_manual(values=alpha(col6mods[2:6], 0.4), guide="none") +
-  labs(title = "", x = "", y = TeX("$\\hat{\\sigma}^2_{total}$ MSE"))+
-  geom_boxplot(width=0.4)+
-  facet_wrap(~rho_lab, labeller=label_parsed)+
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-
 
 
 #### All sigma.2 conditions
@@ -690,8 +793,8 @@ sigma2.T_plot_bias_all <-
   filter(!model_type %in% c("FE")) |>  
   ggplot(aes(x=factor(model_type), y=sigma2.total_bias, color=model_type, fill=model_type)) + 
   stat_halfeye() +
-  scale_color_manual(values=col6mods[2:6], guide="none")+
-  scale_fill_manual(values=alpha(col6mods[2:6], 0.4), guide="none") +
+  scale_color_manual(values=col5mods, guide="none")+
+  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
   labs(title = "", x = "", y = TeX("$\\hat{\\sigma}^2_{total}$ bias"))+
   geom_boxplot(width=0.4)+
   geom_hline(yintercept=0, colour="darkgray")+ 
@@ -705,8 +808,8 @@ sigma2.T_plot_mse_all <-
   filter(!model_type %in% c("FE")) |>  
   ggplot(aes(x=factor(model_type), y=sigma2.total_mse, color=model_type, fill=model_type)) + 
   stat_halfeye() +
-  scale_color_manual(values=col6mods[2:6], guide="none")+
-  scale_fill_manual(values=alpha(col6mods[2:6], 0.4), guide="none") +
+  scale_color_manual(values=col5mods, guide="none")+
+  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
   labs(title = "", x = "", y = TeX("$\\hat{\\sigma}^2_{total}$ MSE"))+
   geom_boxplot(width=0.4)+
   facet_wrap(~rho_lab, labeller=label_parsed)+
@@ -716,61 +819,14 @@ sigma2.T_plot_mse_all
 
 
 
-### Combine into Figure 3
-figure3 <- sigma2.u_plot_est_0.3 / 
-  sigma2.s_plot_est_0.3 / 
-  sigma2.T_plot_mse_0.3 +
-  plot_annotation(tag_levels='A')
 
-ggsave("output/study1/Fig3/figure3_sigma2.png", plot = figure3, width = 8.5, height = 12)
+### supplementary SFigure 10
+Sfigure10 <- sigma2.T_plot_bias_all / 
+             sigma2.T_plot_mse_all + 
+        plot_annotation(tag_levels='A') 
 
 
-### Combine into supplementary figures 
-### S2
-supp.fig_sigma2.u.s_0.5 <- sigma2.u_plot_est_0.05 / sigma2.s_plot_est_0.05 + 
-  plot_annotation(tag_levels='A') 
-ggsave("output/study1/Fig3/Sfigure2_sigma2.u.s.png", 
-       plot = supp.fig_sigma2.u.s_0.5, width = 9, height = 9.5)
-
-### S3
-supp.fig_sigma2.u.s_mse <- sigma2.u_plot_mse_0.05 / sigma2.u_plot_mse_0.3 +
-  plot_annotation(tag_levels='A') 
-ggsave("output/study1/Fig3/Sfigure3_sigma2.u_mse.png", 
-       plot = supp.fig_sigma2.u.s_mse, width = 9, height = 9.5)
-
-
-### S4
-supp.fig_sigma2.u.s_mse <- sigma2.s_plot_mse_0.05 / sigma2.s_plot_mse_0.3 +
-  plot_annotation(tag_levels='A') 
-ggsave("output/study1/Fig3/Sfigure4_sigma2.s_mse.png", 
-       plot = supp.fig_sigma2.u.s_mse, width = 9, height = 9.5)
-
-
-### S5
-supp.fig_sigma2.total <- sigma2.T_plot_bias_all / sigma2.T_plot_mse_all + 
-  plot_annotation(tag_levels='A') 
-ggsave("output/study1/Fig3/Sfigure5_sigma2.total.png", 
-       plot = supp.fig_sigma2.total, width = 9, height = 9.5)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ggsave("output/study2/SFig/Sfigure10_sigma2_total.png", plot = Sfigure10, width = 9, height = 9.5)
 
 
 
