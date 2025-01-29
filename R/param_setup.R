@@ -82,22 +82,22 @@ write.csv(scen.tab2, "output/study2/job_array_study2.csv", row.names = FALSE)
 name.2.sub <- "study2.sub"
 
 # model parameters
-k.studies <- c(20, 50)        # number of studies
+k.studies <- c(20)        # number of studies
 k.species <- c(40)            # number of species (must be <= k.studies)
-mu <- 0.2                     # overall mean effect size (assume a Z value)
-sigma2.s <- c(0.05, 0.3)      # study level variance component: two conditions=0.05, 0.30
-sigma2.u <- c(0.05, 0.3)      # estimate level variance component: two conditions=0.05, 0.30
+sigma2.s <- c(0.3)      # study level variance component: two conditions=0.05, 0.30
+sigma2.u <- c(0.3)      # estimate level variance component: two conditions=0.05, 0.30
 sigma2.n <- c(0.3)  # variance of the species level random effect
 sigma2.p <- c(0.3)  # variance of phylogenetic random effect
+rho <- c(0.2, 0.5, 0.8)       # true correlation between effect sizes within a study
 
-repl <- 100
-sim <- rep(1:100)
+repl <- 1000
+sim <- rep(1:repl)
 
 # make table of all scenarios
-scen.tab2.sub <- expand.grid(sim = sim, name = name.2.sub, k.studies = k.studies, 
-                         k.species = k.species, mu = mu, sigma2.n = sigma2.n,
-                         sigma2.p = sigma2.p, sigma2.s = sigma2.s, sigma2.u = sigma2.u,
-                         rho = rho)
+scen.tab2.sub <- expand.grid(sim = sim, name = name.2.sub, 
+                             k.studies = k.studies, k.species = k.species,
+                             sigma2.n = sigma2.n, sigma2.p = sigma2.p,
+                             sigma2.s = sigma2.s, sigma2.u = sigma2.u, rho = rho)
 
 # only keep rows with the following c(k.studies, k.species) combination: c(20, 40), c(50, 100)
 # scen.tab2 <- scen.tab2 %>% 
@@ -107,7 +107,7 @@ scen.tab2.sub <- expand.grid(sim = sim, name = name.2.sub, k.studies = k.studies
 # add columns for to store results and job number
 scen.tab2.sub$save_location <- rep("/srv/scratch/z5394590/phylo_meta_sandwich/", each=nrow(scen.tab2.sub))
 scen.tab2.sub$job_number <- c(1:nrow(scen.tab2.sub))
-conds.2 <- 2 * length(sigma2.s) * length(sigma2.u) * length(sigma2.n) * length(sigma2.p)  * length(rho)
+conds.2 <- length(sigma2.s) * length(sigma2.u) * length(sigma2.n) * length(sigma2.p)  * length(rho)
 scen.tab2.sub$scenario <- rep(1:conds.2, each = repl)
 
 # save as csv file

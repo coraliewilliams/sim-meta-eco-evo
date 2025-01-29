@@ -30,7 +30,6 @@ rho <- tab$rho[tab$job_number == job]
 k.species <- tab$k.species[tab$job_number == job]
 sigma2.n <- tab$sigma2.n[tab$job_number == job]
 sigma2.p <- tab$sigma2.p[tab$job_number == job]
-mu <- tab$mu[tab$job_number == job]
 
 ### results directory
 dir <- tab$save_location[tab$job_number == job]
@@ -70,25 +69,25 @@ P <- P[order(as.numeric(rownames(P))), order(as.numeric(rownames(P)))]
 
 ### simulate fixed effects
 # set up parameters
-b0 <- 0.2          # intercept
-b1.1 <- 0.05       # measurement type (study level) => slope of measurement type effect difference ( between reference = 0 and 1)
-b1.2 <- -0.02      # measurement type (study level) => slope of measurement type effect difference (between reference = 0 and 2)
-b2 <- -0.02        # weight between species (species level) => continuous (log)
-b3 <- 0.05         # sex (observation level) => slope of sex effect difference (reference = 0)
+b0 <- 0.2         # intercept
+b1.1 <- 0.6       # slope of measurement type effect difference (between reference = 0 and 1)
+b1.2 <- 0.3       # slope of measurement type effect difference (between reference = 0 and 2)
+b2 <- -0.1        # slope of weight effect (species level) => continuous (log)
+b3 <- 0.5         # sex (observation level) => slope of sex effect difference (reference = 0)
 
 measurement <- rep(0:2, times=round(k.studies/3)) # create measurement variable
 
-sigma2.ws <- 0.1   # within species variance in covariate
-sigma2.bs <- 0.3   # between species variance in covariate
+sigma2.ws <- 0.2   # within species variance in covariate
+sigma2.bs <- 0.5   # between species variance in covariate
 species_effect <- rnorm(k.species, 0, sqrt(sigma2.bs))   # (assume mean centered)     
 species_effect <- species_effect[species] 
 within_species_effect <- rnorm(k, 0, sqrt(sigma2.ws))  # (assume mean centered)
 
 
 # set up fixed predictors
-x1 <- measurement[study] # study level predictor
-x2 <- species_effect + within_species_effect      # species-level predictor
-x3 <- sample(0:1, size = k, replace = T)    # observation-level predictor
+x1 <- measurement[study] # study level predictor (measurement type)
+x2 <- species_effect + within_species_effect  # species-level predictor (weight)
+x3 <- sample(0:1, size = k, replace = T)    # observation-level predictor (sex)
 
 
 ### simulate random effects
@@ -126,12 +125,12 @@ mi <- mvrnorm(n = 1, mu = rep(0, length(vi)), Sigma = VCV)
 
 ########### Get estimates  ------------------------------------------------------------------
 
-yi <- mu + 
+yi <- b0 +                              ## intercept
   b1.1 * (x1 == 1) + b1.2 * (x1 == 2) + ## measurement type (study-level)
   b2*x2 +                               ## weight (species-level)
   b3*x3 +                               ## sex (observation-level)
-  u.u + u.s + u.n + u.p + mi
-
+  u.u + u.s + u.n + u.p +               ## random effects
+  mi                                    ## sampling error
 
 # get simulated data
 dat <- data.frame(name = name, scenario = scen, seed = seed, job_number = job,
@@ -263,22 +262,22 @@ pmod4.cr0 <- pmod4_cr0$b[1]
 pmod4.cr1 <- pmod4_cr1$b[1]
 
 
-# mu estimate MSE
-pmod1.est.mse <- (mu - pmod1.est)^2  
-pmod1.cr0.mse <- (mu - pmod1.cr0)^2
-pmod1.cr1.mse <- (mu - pmod1.cr1)^2
-pmod2.est.mse <- (mu - pmod2.est)^2
-pmod2.cr0.mse <- (mu - pmod2.cr0)^2
-pmod2.cr1.mse <- (mu - pmod2.cr1)^2
-pmod3.est.mse <- (mu - pmod3.est)^2
-pmod3.cr0.mse <- (mu - pmod3.cr0)^2
-pmod3.cr1.mse <- (mu - pmod3.cr1)^2
-pmod4.est.mse <- (mu - pmod4.est)^2
-pmod4.cr0.mse <- (mu - pmod4.cr0)^2
-pmod4.cr1.mse <- (mu - pmod4.cr1)^2
+# b0 estimate MSE
+pmod1.est.mse <- (b0 - pmod1.est)^2  
+pmod1.cr0.mse <- (b0 - pmod1.cr0)^2
+pmod1.cr1.mse <- (b0 - pmod1.cr1)^2
+pmod2.est.mse <- (b0 - pmod2.est)^2
+pmod2.cr0.mse <- (b0 - pmod2.cr0)^2
+pmod2.cr1.mse <- (b0 - pmod2.cr1)^2
+pmod3.est.mse <- (b0 - pmod3.est)^2
+pmod3.cr0.mse <- (b0 - pmod3.cr0)^2
+pmod3.cr1.mse <- (b0 - pmod3.cr1)^2
+pmod4.est.mse <- (b0 - pmod4.est)^2
+pmod4.cr0.mse <- (b0 - pmod4.cr0)^2
+pmod4.cr1.mse <- (b0 - pmod4.cr1)^2
 
 
-# mu confidence interval
+# b0 confidence interval
 pmod1.est.ci.ub <- pmod1$ci.ub[1]
 pmod1.est.ci.lb <- pmod1$ci.lb[1]
 pmod2.est.ci.ub <- pmod2$ci.ub[1]
@@ -306,19 +305,19 @@ pmod4.cr1.ci.lb <- pmod4_cr1$ci.lb[1]
 
 
 
-# mu coverage
-pmod1.cov <- pmod1.est.ci.lb < mu && pmod1.est.ci.ub > mu
-pmod1.cr0.cov <- pmod1.cr0.ci.lb < mu && pmod1.cr0.ci.ub > mu
-pmod1.cr1.cov <- pmod1.cr1.ci.lb < mu && pmod1.cr1.ci.ub > mu
-pmod2.cov <- pmod2.est.ci.lb < mu && pmod2.est.ci.ub > mu
-pmod2.cr0.cov <- pmod2.cr0.ci.lb < mu && pmod2.cr0.ci.ub > mu
-pmod2.cr1.cov <- pmod2.cr1.ci.lb < mu && pmod2.cr1.ci.ub > mu
-pmod3.cov <- pmod3.est.ci.lb < mu && pmod3.est.ci.ub > mu
-pmod3.cr0.cov <- pmod3.cr0.ci.lb < mu && pmod3.cr0.ci.ub > mu
-pmod3.cr1.cov <- pmod3.cr1.ci.lb < mu && pmod3.cr1.ci.ub > mu
-pmod4.cov <- pmod4.est.ci.lb < mu && pmod4.est.ci.ub > mu
-pmod4.cr0.cov <- pmod4.cr0.ci.lb < mu && pmod4.cr0.ci.ub > mu
-pmod4.cr1.cov <- pmod4.cr1.ci.lb < mu && pmod4.cr1.ci.ub > mu
+# b0 coverage
+pmod1.cov <- pmod1.est.ci.lb < b0 && pmod1.est.ci.ub > b0
+pmod1.cr0.cov <- pmod1.cr0.ci.lb < b0 && pmod1.cr0.ci.ub > b0
+pmod1.cr1.cov <- pmod1.cr1.ci.lb < b0 && pmod1.cr1.ci.ub > b0
+pmod2.cov <- pmod2.est.ci.lb < b0 && pmod2.est.ci.ub > b0
+pmod2.cr0.cov <- pmod2.cr0.ci.lb < b0 && pmod2.cr0.ci.ub > b0
+pmod2.cr1.cov <- pmod2.cr1.ci.lb < b0 && pmod2.cr1.ci.ub > b0
+pmod3.cov <- pmod3.est.ci.lb < b0 && pmod3.est.ci.ub > b0
+pmod3.cr0.cov <- pmod3.cr0.ci.lb < b0 && pmod3.cr0.ci.ub > b0
+pmod3.cr1.cov <- pmod3.cr1.ci.lb < b0 && pmod3.cr1.ci.ub > b0
+pmod4.cov <- pmod4.est.ci.lb < b0 && pmod4.est.ci.ub > b0
+pmod4.cr0.cov <- pmod4.cr0.ci.lb < b0 && pmod4.cr0.ci.ub > b0
+pmod4.cr1.cov <- pmod4.cr1.ci.lb < b0 && pmod4.cr1.ci.ub > b0
 
 
 
@@ -647,21 +646,21 @@ res <- data.frame(name = rep(name, 12),
                   sigma2.p = rep(sigma2.p, 12),
                   sigma2.s = rep(sigma2.s, 12),
                   sigma2.u = rep(sigma2.u, 12),
-                  mu = rep(mu, 12),
+                  b0 = rep(b0, 12),
                   rho = rep(rho, 12),
-                  mu_est = c(pmod1.est, pmod2.est, pmod3.est, pmod4.est, 
+                  b0_est = c(pmod1.est, pmod2.est, pmod3.est, pmod4.est, 
                              pmod1.cr0, pmod2.cr0, pmod3.cr0, pmod4.cr0,
                              pmod1.cr1, pmod2.cr1, pmod3.cr1, pmod4.cr1), 
-                  mu_mse = c(pmod1.est.mse, pmod2.est.mse, pmod3.est.mse, pmod4.est.mse, 
+                  b0_mse = c(pmod1.est.mse, pmod2.est.mse, pmod3.est.mse, pmod4.est.mse, 
                              pmod1.cr0.mse, pmod2.cr0.mse, pmod3.cr0.mse, pmod4.cr0.mse, 
                              pmod1.cr1.mse, pmod2.cr1.mse, pmod3.cr1.mse, pmod4.cr1.mse), 
-                  mu_ci_ub = c(pmod1.est.ci.ub, pmod2.est.ci.ub, pmod3.est.ci.ub, pmod4.est.ci.ub, 
+                  b0_ci_ub = c(pmod1.est.ci.ub, pmod2.est.ci.ub, pmod3.est.ci.ub, pmod4.est.ci.ub, 
                                pmod1.cr0.ci.ub, pmod2.cr0.ci.ub, pmod3.cr0.ci.ub, pmod4.cr0.ci.ub,
                                pmod1.cr1.ci.ub, pmod2.cr1.ci.ub, pmod3.cr1.ci.ub, pmod4.cr1.ci.ub), 
-                  mu_ci_lb = c(pmod1.est.ci.lb, pmod2.est.ci.lb, pmod3.est.ci.lb, pmod4.est.ci.lb,
+                  b0_ci_lb = c(pmod1.est.ci.lb, pmod2.est.ci.lb, pmod3.est.ci.lb, pmod4.est.ci.lb,
                                pmod1.cr0.ci.lb, pmod2.cr0.ci.lb, pmod3.cr0.ci.lb, pmod4.cr0.ci.lb, 
                                pmod1.cr1.ci.lb, pmod2.cr1.ci.lb, pmod3.cr1.ci.lb, pmod4.cr1.ci.lb),
-                  mu_cov = c(pmod1.cov, pmod2.cov, pmod3.cov, pmod4.cov, 
+                  b0_cov = c(pmod1.cov, pmod2.cov, pmod3.cov, pmod4.cov, 
                              pmod1.cr0.cov, pmod2.cr0.cov, pmod3.cr0.cov, pmod4.cr0.cov,
                              pmod1.cr1.cov, pmod2.cr1.cov, pmod3.cr1.cov, pmod4.cr1.cov), 
                   sigma.n_est = c(pmod1.sigma2.n, pmod2.sigma2.n, pmod3.sigma2.n, pmod4.sigma2.n,
