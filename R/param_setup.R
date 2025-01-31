@@ -82,15 +82,15 @@ write.csv(scen.tab2, "output/study2/job_array_study2.csv", row.names = FALSE)
 name.2.sub <- "study2.sub"
 
 # model parameters
-k.studies <- c(20)        # number of studies
-k.species <- c(40)            # number of species (must be <= k.studies)
-sigma2.s <- c(0.3)      # study level variance component: two conditions=0.05, 0.30
-sigma2.u <- c(0.3)      # estimate level variance component: two conditions=0.05, 0.30
-sigma2.n <- c(0.3)  # variance of the species level random effect
-sigma2.p <- c(0.3)  # variance of phylogenetic random effect
+k.studies <- c(20, 50)        # number of studies
+k.species <- c(40, 100)       # number of species (must be <= k.studies)
+sigma2.s <- c(0.05, 0.3)      # study level variance component: two conditions=0.05, 0.30
+sigma2.u <- c(0.05, 0.3)      # estimate level variance component: two conditions=0.05, 0.30
+sigma2.n <- c(0.05, 0.3)      # variance of the species level random effect
+sigma2.p <- c(0.05, 0.3)            # variance of phylogenetic random effect
 rho <- c(0.2, 0.5, 0.8)       # true correlation between effect sizes within a study
 
-repl <- 1000
+repl <- 100
 sim <- rep(1:repl)
 
 # make table of all scenarios
@@ -111,5 +111,5 @@ conds.2 <- length(sigma2.s) * length(sigma2.u) * length(sigma2.n) * length(sigma
 scen.tab2.sub$scenario <- rep(1:conds.2, each = repl)
 
 # save as csv file
-write.csv(scen.tab2.sub, "output/study2/job_array_study2.sub.csv", row.names = FALSE)
+write.csv(scen.tab2.sub, "output/study2.sub/job_array_study2.sub.csv", row.names = FALSE)
 

@@ -56,37 +56,26 @@ species[sample(k, k.species)] <- seq_len(k.species)
 species.phylo <- species
 
 # simulate tree
-tree.power <- 0.3 # set tree power - what is best here?
 tree <- rtree(k.species, tip.label=seq_len(k.species))
-tree <- compute.brlen(tree, power = tree.power)
+tree <- compute.brlen(tree, power = 1)
 P <- vcv(tree, corr=TRUE)
 P <- P[order(as.numeric(rownames(P))), order(as.numeric(rownames(P)))]
 
-### when the power parameter is 0, vcv inserts Nan to the off-diagonals. We
-### want the correlation matrix to be an identity matrix in these conditions.
-### So, we will replace Nans with 0s.
-#P[is.nan(P)] <- 0
 
 ### simulate fixed effects
 # set up parameters
 b0 <- 0.2         # intercept
-b1.1 <- 0.6       # slope of measurement type effect difference (between reference = 0 and 1)
-b1.2 <- 0.3       # slope of measurement type effect difference (between reference = 0 and 2)
-b2 <- -0.1        # slope of weight effect (species level) => continuous (log)
+b1 <- 0.6         # slope of measurement type effect difference (between reference = 0 and 1)
+b2 <- 0.2         # slope of weight effect (species level) => continuous (log)
 b3 <- 0.5         # sex (observation level) => slope of sex effect difference (reference = 0)
 
-measurement <- rep(0:2, times=round(k.studies/3)) # create measurement variable
-
-sigma2.ws <- 0.2   # within species variance in covariate
-sigma2.bs <- 0.5   # between species variance in covariate
-species_effect <- rnorm(k.species, 0, sqrt(sigma2.bs))   # (assume mean centered)     
-species_effect <- species_effect[species] 
-within_species_effect <- rnorm(k, 0, sqrt(sigma2.ws))  # (assume mean centered)
-
+measurement <- rep(0:1, times=round(k.studies/2)) # create measurement variable
+sigma2.bs <- 0.5   # between species variance in log(weight)
+species_effect <- rnorm(k.species, 0, sqrt(sigma2.bs))  # (assume mean centered)     
 
 # set up fixed predictors
 x1 <- measurement[study] # study level predictor (measurement type)
-x2 <- species_effect + within_species_effect  # species-level predictor (weight)
+x2 <- species_effect[species]    # species-level predictor (weight)
 x3 <- sample(0:1, size = k, replace = T)    # observation-level predictor (sex)
 
 
@@ -125,19 +114,18 @@ mi <- mvrnorm(n = 1, mu = rep(0, length(vi)), Sigma = VCV)
 
 ########### Get estimates  ------------------------------------------------------------------
 
-yi <- b0 +                              ## intercept
-  b1.1 * (x1 == 1) + b1.2 * (x1 == 2) + ## measurement type (study-level)
-  b2*x2 +                               ## weight (species-level)
-  b3*x3 +                               ## sex (observation-level)
-  u.u + u.s + u.n + u.p +               ## random effects
-  mi                                    ## sampling error
+yi <- b0 + ## intercept
+  b1*x1 +  ## measurement type (study-level)
+  b2*x2 +  ## weight (species-level)
+  b3*x3 +  ## sex (observation-level)
+  u.u + u.s + u.n + u.p +   ## random effects
+  mi       ## sampling error
 
 # get simulated data
 dat <- data.frame(name = name, scenario = scen, seed = seed, job_number = job,
                   study.id = study, id = id, esid = esid, species.id = species,
                   yi = yi, vi = vi,
-                  b1.1 = b1.1, b1.2 = b1.2, b2 = b2, b3 = b3, 
-                  sigma2.ws = sigma2.ws, sigma2.bs = sigma2.bs,
+                  b1 = b1, b2 = b2, b3 = b3, 
                   x1 = x1, x2 = x2, x3 = x3,
                   u.u = u.u, u.s = u.s, u.n = u.n, u.p = u.p,  mi = mi)
 # save simulated data in R file
@@ -247,7 +235,7 @@ pmod4_cr1 <- robust(pmod4, cluster = study, adjust=TRUE)
 
 ########### Extract model estimates  -------------------------------------------------------------------
 
-# mu estimate 
+# b0 estimate 
 pmod1.est <- pmod1$b[1]
 pmod1.cr0 <- pmod1_cr0$b[1]
 pmod1.cr1 <- pmod1_cr1$b[1]
@@ -448,177 +436,131 @@ pmod4.cr1.sigma2.u.mse <- (sigma2.u - pmod4.cr1.sigma2.u)^2
 
 
 
-# b1.1 estimate
-pmod1.b1.1 <- pmod1$b[2]
-pmod1.cr0.b1.1 <- pmod1$b[2]
-pmod1.cr1.b1.1 <- pmod1$b[2]
-pmod2.b1.1 <- pmod2$b[2]
-pmod2.cr0.b1.1 <- pmod2$b[2]
-pmod2.cr1.b1.1 <- pmod2$b[2]
-pmod3.b1.1 <- pmod3$b[2]
-pmod3.cr0.b1.1 <- pmod3$b[2]
-pmod3.cr1.b1.1 <- pmod3$b[2]
-pmod4.b1.1 <- pmod4$b[2]
-pmod4.cr0.b1.1 <- pmod4$b[2]
-pmod4.cr1.b1.1 <- pmod4$b[2]
+# b1 estimate
+pmod1.b1 <- pmod1$b[2]
+pmod1.cr0.b1 <- pmod1$b[2]
+pmod1.cr1.b1 <- pmod1$b[2]
+pmod2.b1 <- pmod2$b[2]
+pmod2.cr0.b1 <- pmod2$b[2]
+pmod2.cr1.b1 <- pmod2$b[2]
+pmod3.b1 <- pmod3$b[2]
+pmod3.cr0.b1 <- pmod3$b[2]
+pmod3.cr1.b1 <- pmod3$b[2]
+pmod4.b1 <- pmod4$b[2]
+pmod4.cr0.b1 <- pmod4$b[2]
+pmod4.cr1.b1 <- pmod4$b[2]
 
 
-# b1.1 confidence intervals
-pmod1.b1.1.ci.lb <- pmod1$ci.lb[2]
-pmod1.b1.1.ci.ub <- pmod1$ci.ub[2]
-pmod1.cr0.b1.1.ci.lb <- pmod1_cr0$ci.lb[2]
-pmod1.cr0.b1.1.ci.ub <- pmod1_cr0$ci.ub[2]
-pmod1.cr1.b1.1.ci.lb <- pmod1_cr1$ci.lb[2]
-pmod1.cr1.b1.1.ci.ub <- pmod1_cr1$ci.ub[2]
-pmod2.b1.1.ci.lb <- pmod2$ci.lb[2]
-pmod2.b1.1.ci.ub <- pmod2$ci.ub[2]
-pmod2.cr0.b1.1.ci.lb <- pmod2_cr0$ci.lb[2]
-pmod2.cr0.b1.1.ci.ub <- pmod2_cr0$ci.ub[2]
-pmod2.cr1.b1.1.ci.lb <- pmod2_cr1$ci.lb[2]
-pmod2.cr1.b1.1.ci.ub <- pmod2_cr1$ci.ub[2]
-pmod3.b1.1.ci.lb <- pmod3$ci.lb[2]
-pmod3.b1.1.ci.ub <- pmod3$ci.ub[2]
-pmod3.cr0.b1.1.ci.lb <- pmod3_cr0$ci.lb[2]
-pmod3.cr0.b1.1.ci.ub <- pmod3_cr0$ci.ub[2]
-pmod3.cr1.b1.1.ci.lb <- pmod3_cr1$ci.lb[2]
-pmod3.cr1.b1.1.ci.ub <- pmod3_cr1$ci.ub[2]
-pmod4.b1.1.ci.lb <- pmod4$ci.lb[2]
-pmod4.b1.1.ci.ub <- pmod4$ci.ub[2]
-pmod4.cr0.b1.1.ci.lb <- pmod4_cr0$ci.lb[2]
-pmod4.cr0.b1.1.ci.ub <- pmod4_cr0$ci.ub[2]
-pmod4.cr1.b1.1.ci.lb <- pmod4_cr1$ci.lb[2]
-pmod4.cr1.b1.1.ci.ub <- pmod4_cr1$ci.ub[2]
-
-
-
-# b1.2 estimate
-pmod1.b1.2 <- pmod1$b[3]
-pmod1.cr0.b1.2 <- pmod1$b[3]
-pmod1.cr1.b1.2 <- pmod1$b[3]
-pmod2.b1.2 <- pmod2$b[3]
-pmod2.cr0.b1.2 <- pmod2$b[3]
-pmod2.cr1.b1.2 <- pmod2$b[3]
-pmod3.b1.2 <- pmod3$b[3]
-pmod3.cr0.b1.2 <- pmod3$b[3]
-pmod3.cr1.b1.2 <- pmod3$b[3]
-pmod4.b1.2 <- pmod4$b[3]
-pmod4.cr0.b1.2 <- pmod4$b[3]
-pmod4.cr1.b1.2 <- pmod4$b[3]
-
-
-# b1.2 confidence intervals
-pmod1.b1.2.ci.lb <- pmod1$ci.lb[3]
-pmod1.b1.2.ci.ub <- pmod1$ci.ub[3]
-pmod1.cr0.b1.2.ci.lb <- pmod1_cr0$ci.lb[3]
-pmod1.cr0.b1.2.ci.ub <- pmod1_cr0$ci.ub[3]
-pmod1.cr1.b1.2.ci.lb <- pmod1_cr1$ci.lb[3]
-pmod1.cr1.b1.2.ci.ub <- pmod1_cr1$ci.ub[3]
-pmod2.b1.2.ci.lb <- pmod2$ci.lb[3]
-pmod2.b1.2.ci.ub <- pmod2$ci.ub[3]
-pmod2.cr0.b1.2.ci.lb <- pmod2_cr0$ci.lb[3]
-pmod2.cr0.b1.2.ci.ub <- pmod2_cr0$ci.ub[3]
-pmod2.cr1.b1.2.ci.lb <- pmod2_cr1$ci.lb[3]
-pmod2.cr1.b1.2.ci.ub <- pmod2_cr1$ci.ub[3]
-pmod3.b1.2.ci.lb <- pmod3$ci.lb[3]
-pmod3.b1.2.ci.ub <- pmod3$ci.ub[3]
-pmod3.cr0.b1.2.ci.lb <- pmod3_cr0$ci.lb[3]
-pmod3.cr0.b1.2.ci.ub <- pmod3_cr0$ci.ub[3]
-pmod3.cr1.b1.2.ci.lb <- pmod3_cr1$ci.lb[3]
-pmod3.cr1.b1.2.ci.ub <- pmod3_cr1$ci.ub[3]
-pmod4.b1.2.ci.lb <- pmod4$ci.lb[3]
-pmod4.b1.2.ci.ub <- pmod4$ci.ub[3]
-pmod4.cr0.b1.2.ci.lb <- pmod4_cr0$ci.lb[3]
-pmod4.cr0.b1.2.ci.ub <- pmod4_cr0$ci.ub[3]
-pmod4.cr1.b1.2.ci.lb <- pmod4_cr1$ci.lb[3]
-pmod4.cr1.b1.2.ci.ub <- pmod4_cr1$ci.ub[3]
-
+# b1 confidence intervals
+pmod1.b1.ci.lb <- pmod1$ci.lb[2]
+pmod1.b1.ci.ub <- pmod1$ci.ub[2]
+pmod1.cr0.b1.ci.lb <- pmod1_cr0$ci.lb[2]
+pmod1.cr0.b1.ci.ub <- pmod1_cr0$ci.ub[2]
+pmod1.cr1.b1.ci.lb <- pmod1_cr1$ci.lb[2]
+pmod1.cr1.b1.ci.ub <- pmod1_cr1$ci.ub[2]
+pmod2.b1.ci.lb <- pmod2$ci.lb[2]
+pmod2.b1.ci.ub <- pmod2$ci.ub[2]
+pmod2.cr0.b1.ci.lb <- pmod2_cr0$ci.lb[2]
+pmod2.cr0.b1.ci.ub <- pmod2_cr0$ci.ub[2]
+pmod2.cr1.b1.ci.lb <- pmod2_cr1$ci.lb[2]
+pmod2.cr1.b1.ci.ub <- pmod2_cr1$ci.ub[2]
+pmod3.b1.ci.lb <- pmod3$ci.lb[2]
+pmod3.b1.ci.ub <- pmod3$ci.ub[2]
+pmod3.cr0.b1.ci.lb <- pmod3_cr0$ci.lb[2]
+pmod3.cr0.b1.ci.ub <- pmod3_cr0$ci.ub[2]
+pmod3.cr1.b1.ci.lb <- pmod3_cr1$ci.lb[2]
+pmod3.cr1.b1.ci.ub <- pmod3_cr1$ci.ub[2]
+pmod4.b1.ci.lb <- pmod4$ci.lb[2]
+pmod4.b1.ci.ub <- pmod4$ci.ub[2]
+pmod4.cr0.b1.ci.lb <- pmod4_cr0$ci.lb[2]
+pmod4.cr0.b1.ci.ub <- pmod4_cr0$ci.ub[2]
+pmod4.cr1.b1.ci.lb <- pmod4_cr1$ci.lb[2]
+pmod4.cr1.b1.ci.ub <- pmod4_cr1$ci.ub[2]
 
 
 # b2 estimate
-pmod1.b2 <- pmod1$b[4]
-pmod1.cr0.b2 <- pmod1$b[4]
-pmod1.cr1.b2 <- pmod1$b[4]
-pmod2.b2 <- pmod2$b[4]
-pmod2.cr0.b2 <- pmod2$b[4]
-pmod2.cr1.b2 <- pmod2$b[4]
-pmod3.b2 <- pmod3$b[4]
-pmod3.cr0.b2 <- pmod3$b[4]
-pmod3.cr1.b2 <- pmod3$b[4]
-pmod4.b2 <- pmod4$b[4]
-pmod4.cr0.b2 <- pmod4$b[4]
-pmod4.cr1.b2 <- pmod4$b[4]
+pmod1.b2 <- pmod1$b[3]
+pmod1.cr0.b2 <- pmod1$b[3]
+pmod1.cr1.b2 <- pmod1$b[3]
+pmod2.b2 <- pmod2$b[3]
+pmod2.cr0.b2 <- pmod2$b[3]
+pmod2.cr1.b2 <- pmod2$b[3]
+pmod3.b2 <- pmod3$b[3]
+pmod3.cr0.b2 <- pmod3$b[3]
+pmod3.cr1.b2 <- pmod3$b[3]
+pmod4.b2 <- pmod4$b[3]
+pmod4.cr0.b2 <- pmod4$b[3]
+pmod4.cr1.b2 <- pmod4$b[3]
 
 
 # b2 confidence intervals
-pmod1.b2.ci.lb <- pmod1$ci.lb[4]
-pmod1.b2.ci.ub <- pmod1$ci.ub[4]
-pmod1.cr0.b2.ci.lb <- pmod1_cr0$ci.lb[4]
-pmod1.cr0.b2.ci.ub <- pmod1_cr0$ci.ub[4]
-pmod1.cr1.b2.ci.lb <- pmod1_cr1$ci.lb[4]
-pmod1.cr1.b2.ci.ub <- pmod1_cr1$ci.ub[4]
-pmod2.b2.ci.lb <- pmod2$ci.lb[4]
-pmod2.b2.ci.ub <- pmod2$ci.ub[4]
-pmod2.cr0.b2.ci.lb <- pmod2_cr0$ci.lb[4]
-pmod2.cr0.b2.ci.ub <- pmod2_cr0$ci.ub[4]
-pmod2.cr1.b2.ci.lb <- pmod2_cr1$ci.lb[4]
-pmod2.cr1.b2.ci.ub <- pmod2_cr1$ci.ub[4]
-pmod3.b2.ci.lb <- pmod3$ci.lb[4]
-pmod3.b2.ci.ub <- pmod3$ci.ub[4]
-pmod3.cr0.b2.ci.lb <- pmod3_cr0$ci.lb[4]
-pmod3.cr0.b2.ci.ub <- pmod3_cr0$ci.ub[4]
-pmod3.cr1.b2.ci.lb <- pmod3_cr1$ci.lb[4]
-pmod3.cr1.b2.ci.ub <- pmod3_cr1$ci.ub[4]
-pmod4.b2.ci.lb <- pmod4$ci.lb[4]
-pmod4.b2.ci.ub <- pmod4$ci.ub[4]
-pmod4.cr0.b2.ci.lb <- pmod4_cr0$ci.lb[4]
-pmod4.cr0.b2.ci.ub <- pmod4_cr0$ci.ub[4]
-pmod4.cr1.b2.ci.lb <- pmod4_cr1$ci.lb[4]
-pmod4.cr1.b2.ci.ub <- pmod4_cr1$ci.ub[4]
-
-
+pmod1.b2.ci.lb <- pmod1$ci.lb[3]
+pmod1.b2.ci.ub <- pmod1$ci.ub[3]
+pmod1.cr0.b2.ci.lb <- pmod1_cr0$ci.lb[3]
+pmod1.cr0.b2.ci.ub <- pmod1_cr0$ci.ub[3]
+pmod1.cr1.b2.ci.lb <- pmod1_cr1$ci.lb[3]
+pmod1.cr1.b2.ci.ub <- pmod1_cr1$ci.ub[3]
+pmod2.b2.ci.lb <- pmod2$ci.lb[3]
+pmod2.b2.ci.ub <- pmod2$ci.ub[3]
+pmod2.cr0.b2.ci.lb <- pmod2_cr0$ci.lb[3]
+pmod2.cr0.b2.ci.ub <- pmod2_cr0$ci.ub[3]
+pmod2.cr1.b2.ci.lb <- pmod2_cr1$ci.lb[3]
+pmod2.cr1.b2.ci.ub <- pmod2_cr1$ci.ub[3]
+pmod3.b2.ci.lb <- pmod3$ci.lb[3]
+pmod3.b2.ci.ub <- pmod3$ci.ub[3]
+pmod3.cr0.b2.ci.lb <- pmod3_cr0$ci.lb[3]
+pmod3.cr0.b2.ci.ub <- pmod3_cr0$ci.ub[3]
+pmod3.cr1.b2.ci.lb <- pmod3_cr1$ci.lb[3]
+pmod3.cr1.b2.ci.ub <- pmod3_cr1$ci.ub[3]
+pmod4.b2.ci.lb <- pmod4$ci.lb[3]
+pmod4.b2.ci.ub <- pmod4$ci.ub[3]
+pmod4.cr0.b2.ci.lb <- pmod4_cr0$ci.lb[3]
+pmod4.cr0.b2.ci.ub <- pmod4_cr0$ci.ub[3]
+pmod4.cr1.b2.ci.lb <- pmod4_cr1$ci.lb[3]
+pmod4.cr1.b2.ci.ub <- pmod4_cr1$ci.ub[3]
 
 
 
 # b3 estimate
-pmod1.b3 <- pmod1$b[5]
-pmod1.cr0.b3 <- pmod1$b[5]
-pmod1.cr1.b3 <- pmod1$b[5]
-pmod2.b3 <- pmod2$b[5]
-pmod2.cr0.b3 <- pmod2$b[5]
-pmod2.cr1.b3 <- pmod2$b[5]
-pmod3.b3 <- pmod3$b[5]
-pmod3.cr0.b3 <- pmod3$b[5]
-pmod3.cr1.b3 <- pmod3$b[5]
-pmod4.b3 <- pmod4$b[5]
-pmod4.cr0.b3 <- pmod4$b[5]
-pmod4.cr1.b3 <- pmod4$b[5]
+pmod1.b3 <- pmod1$b[4]
+pmod1.cr0.b3 <- pmod1$b[4]
+pmod1.cr1.b3 <- pmod1$b[4]
+pmod2.b3 <- pmod2$b[4]
+pmod2.cr0.b3 <- pmod2$b[4]
+pmod2.cr1.b3 <- pmod2$b[4]
+pmod3.b3 <- pmod3$b[4]
+pmod3.cr0.b3 <- pmod3$b[4]
+pmod3.cr1.b3 <- pmod3$b[4]
+pmod4.b3 <- pmod4$b[4]
+pmod4.cr0.b3 <- pmod4$b[4]
+pmod4.cr1.b3 <- pmod4$b[4]
 
 
 # b3 confidence intervals
-pmod1.b3.ci.lb <- pmod1$ci.lb[5]
-pmod1.b3.ci.ub <- pmod1$ci.ub[5]
-pmod1.cr0.b3.ci.lb <- pmod1_cr0$ci.lb[5]
-pmod1.cr0.b3.ci.ub <- pmod1_cr0$ci.ub[5]
-pmod1.cr1.b3.ci.lb <- pmod1_cr1$ci.lb[5]
-pmod1.cr1.b3.ci.ub <- pmod1_cr1$ci.ub[5]
-pmod2.b3.ci.lb <- pmod2$ci.lb[5]
-pmod2.b3.ci.ub <- pmod2$ci.ub[5]
-pmod2.cr0.b3.ci.lb <- pmod2_cr0$ci.lb[5]
-pmod2.cr0.b3.ci.ub <- pmod2_cr0$ci.ub[5]
-pmod2.cr1.b3.ci.lb <- pmod2_cr1$ci.lb[5]
-pmod2.cr1.b3.ci.ub <- pmod2_cr1$ci.ub[5]
-pmod3.b3.ci.lb <- pmod3$ci.lb[5]
-pmod3.b3.ci.ub <- pmod3$ci.ub[5]
-pmod3.cr0.b3.ci.lb <- pmod3_cr0$ci.lb[5]
-pmod3.cr0.b3.ci.ub <- pmod3_cr0$ci.ub[5]
-pmod3.cr1.b3.ci.lb <- pmod3_cr1$ci.lb[5]
-pmod3.cr1.b3.ci.ub <- pmod3_cr1$ci.ub[5]
-pmod4.b3.ci.lb <- pmod4$ci.lb[5]
-pmod4.b3.ci.ub <- pmod4$ci.ub[5]
-pmod4.cr0.b3.ci.lb <- pmod4_cr0$ci.lb[5]
-pmod4.cr0.b3.ci.ub <- pmod4_cr0$ci.ub[5]
-pmod4.cr1.b3.ci.lb <- pmod4_cr1$ci.lb[5]
-pmod4.cr1.b3.ci.ub <- pmod4_cr1$ci.ub[5]
+pmod1.b3.ci.lb <- pmod1$ci.lb[4]
+pmod1.b3.ci.ub <- pmod1$ci.ub[4]
+pmod1.cr0.b3.ci.lb <- pmod1_cr0$ci.lb[4]
+pmod1.cr0.b3.ci.ub <- pmod1_cr0$ci.ub[4]
+pmod1.cr1.b3.ci.lb <- pmod1_cr1$ci.lb[4]
+pmod1.cr1.b3.ci.ub <- pmod1_cr1$ci.ub[4]
+pmod2.b3.ci.lb <- pmod2$ci.lb[4]
+pmod2.b3.ci.ub <- pmod2$ci.ub[4]
+pmod2.cr0.b3.ci.lb <- pmod2_cr0$ci.lb[4]
+pmod2.cr0.b3.ci.ub <- pmod2_cr0$ci.ub[4]
+pmod2.cr1.b3.ci.lb <- pmod2_cr1$ci.lb[4]
+pmod2.cr1.b3.ci.ub <- pmod2_cr1$ci.ub[4]
+pmod3.b3.ci.lb <- pmod3$ci.lb[4]
+pmod3.b3.ci.ub <- pmod3$ci.ub[4]
+pmod3.cr0.b3.ci.lb <- pmod3_cr0$ci.lb[4]
+pmod3.cr0.b3.ci.ub <- pmod3_cr0$ci.ub[4]
+pmod3.cr1.b3.ci.lb <- pmod3_cr1$ci.lb[4]
+pmod3.cr1.b3.ci.ub <- pmod3_cr1$ci.ub[4]
+pmod4.b3.ci.lb <- pmod4$ci.lb[4]
+pmod4.b3.ci.ub <- pmod4$ci.ub[4]
+pmod4.cr0.b3.ci.lb <- pmod4_cr0$ci.lb[4]
+pmod4.cr0.b3.ci.ub <- pmod4_cr0$ci.ub[4]
+pmod4.cr1.b3.ci.lb <- pmod4_cr1$ci.lb[4]
+pmod4.cr1.b3.ci.ub <- pmod4_cr1$ci.ub[4]
 
 
 
@@ -638,8 +580,7 @@ res <- data.frame(name = rep(name, 12),
                   comp.time = rep(c(pmod1_time, pmod2_time, pmod3_time, pmod4_time), 3),
                   k.studies = rep(k.studies, 12),
                   k.species = rep(k.species, 12),
-                  b1.1 = rep(b1.1, 12),
-                  b1.2 = rep(b1.2, 12),
+                  b1 = rep(b1, 12),
                   b2 = rep(b2, 12),
                   b3 = rep(b3, 12),
                   sigma2.n = rep(sigma2.n, 12),
@@ -687,24 +628,15 @@ res <- data.frame(name = rep(name, 12),
                   sigma.u_mse = c(pmod1.sigma2.u.mse, pmod2.sigma2.u.mse, pmod3.sigma2.u.mse, pmod4.sigma2.u.mse, 
                                   pmod1.cr0.sigma2.u.mse, pmod2.cr0.sigma2.u.mse, pmod3.cr0.sigma2.u.mse, pmod4.cr0.sigma2.u.mse, 
                                   pmod1.cr1.sigma2.u.mse, pmod2.cr1.sigma2.u.mse, pmod3.cr1.sigma2.u.mse, pmod4.cr1.sigma2.u.mse), 
-                  b1.1_est = c(pmod1.b1.1, pmod2.b1.1, pmod3.b1.1, pmod4.b1.1,
-                             pmod1.cr0.b1.1, pmod2.cr0.b1.1, pmod3.cr0.b1.1, pmod4.cr0.b1.1,
-                             pmod1.cr1.b1.1, pmod2.cr1.b1.1, pmod3.cr1.b1.1, pmod4.cr1.b1.1),
-                  b1.1_ci_lb = c(pmod1.b1.1.ci.lb, pmod2.b1.1.ci.lb, pmod3.b1.1.ci.lb, pmod4.b1.1.ci.lb,
-                               pmod1.cr0.b1.1.ci.lb, pmod2.cr0.b1.1.ci.lb, pmod3.cr0.b1.1.ci.lb, pmod4.cr0.b1.1.ci.lb,
-                               pmod1.cr1.b1.1.ci.lb, pmod2.cr1.b1.1.ci.lb, pmod3.cr1.b1.1.ci.lb, pmod4.cr1.b1.1.ci.lb),
-                  b1.1_ci_ub = c(pmod1.b1.1.ci.ub, pmod2.b1.1.ci.ub, pmod3.b1.1.ci.ub, pmod4.b1.1.ci.ub,
-                               pmod1.cr0.b1.1.ci.ub, pmod2.cr0.b1.1.ci.ub, pmod3.cr0.b1.1.ci.ub, pmod4.cr0.b1.1.ci.ub,
-                               pmod1.cr1.b1.1.ci.ub, pmod2.cr1.b1.1.ci.ub, pmod3.cr1.b1.1.ci.ub, pmod4.cr1.b1.1.ci.ub),
-                  b1.2_est = c(pmod1.b1.2, pmod2.b1.2, pmod3.b1.2, pmod4.b1.2,
-                               pmod1.cr0.b1.2, pmod2.cr0.b1.2, pmod3.cr0.b1.2, pmod4.cr0.b1.2,
-                               pmod1.cr1.b1.2, pmod2.cr1.b1.2, pmod3.cr1.b1.2, pmod4.cr1.b1.2),
-                  b1.2_ci_lb = c(pmod1.b1.2.ci.lb, pmod2.b1.2.ci.lb, pmod3.b1.2.ci.lb, pmod4.b1.2.ci.lb,
-                                 pmod1.cr0.b1.2.ci.lb, pmod2.cr0.b1.2.ci.lb, pmod3.cr0.b1.2.ci.lb, pmod4.cr0.b1.2.ci.lb,
-                                 pmod1.cr1.b1.2.ci.lb, pmod2.cr1.b1.2.ci.lb, pmod3.cr1.b1.2.ci.lb, pmod4.cr1.b1.2.ci.lb),
-                  b1.2_ci_ub = c(pmod1.b1.2.ci.ub, pmod2.b1.2.ci.ub, pmod3.b1.2.ci.ub, pmod4.b1.2.ci.ub,
-                                 pmod1.cr0.b1.2.ci.ub, pmod2.cr0.b1.2.ci.ub, pmod3.cr0.b1.2.ci.ub, pmod4.cr0.b1.2.ci.ub,
-                                 pmod1.cr1.b1.2.ci.ub, pmod2.cr1.b1.2.ci.ub, pmod3.cr1.b1.2.ci.ub, pmod4.cr1.b1.2.ci.ub),
+                  b1_est = c(pmod1.b1, pmod2.b1, pmod3.b1, pmod4.b1,
+                             pmod1.cr0.b1, pmod2.cr0.b1, pmod3.cr0.b1, pmod4.cr0.b1,
+                             pmod1.cr1.b1, pmod2.cr1.b1, pmod3.cr1.b1, pmod4.cr1.b1),
+                  b1_ci_lb = c(pmod1.b1.ci.lb, pmod2.b1.ci.lb, pmod3.b1.ci.lb, pmod4.b1.ci.lb,
+                               pmod1.cr0.b1.ci.lb, pmod2.cr0.b1.ci.lb, pmod3.cr0.b1.ci.lb, pmod4.cr0.b1.ci.lb,
+                               pmod1.cr1.b1.ci.lb, pmod2.cr1.b1.ci.lb, pmod3.cr1.b1.ci.lb, pmod4.cr1.b1.ci.lb),
+                  b1_ci_ub = c(pmod1.b1.ci.ub, pmod2.b1.ci.ub, pmod3.b1.ci.ub, pmod4.b1.ci.ub,
+                               pmod1.cr0.b1.ci.ub, pmod2.cr0.b1.ci.ub, pmod3.cr0.b1.ci.ub, pmod4.cr0.b1.ci.ub,
+                               pmod1.cr1.b1.ci.ub, pmod2.cr1.b1.ci.ub, pmod3.cr1.b1.ci.ub, pmod4.cr1.b1.ci.ub),
                   b2_est = c(pmod1.b2, pmod2.b2, pmod3.b2, pmod4.b2,
                                pmod1.cr0.b2, pmod2.cr0.b2, pmod3.cr0.b2, pmod4.cr0.b2,
                                pmod1.cr1.b2, pmod2.cr1.b2, pmod3.cr1.b2, pmod4.cr1.b2),
