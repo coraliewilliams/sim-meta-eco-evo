@@ -3266,7 +3266,7 @@ window.Quarto = {
 </section>
 <section id="case-study-1-meta-analysis-on-plant-coexistence" class="level1">
 <h1>Case study 1: Meta-analysis on plant coexistence</h1>
-<p>First we want to load the dataset</p>
+<p>Crawford et al. (2019) used a large meta-analysis dataset of pairwise plant-soil feedback measures to investigate whether these feedbacks contribute to plant species coexistence. First we want to load the meta-analytical dataset provided in Crawford et al. (2019).</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># link to download data file: &quot;https://figshare.com/ndownloader/files/14874749&quot;</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="fu">here</span>(<span class="st">&quot;data/case_studies/Supplementary Table 1.xlsx&quot;</span>), <span class="at">sheet=</span><span class="st">&quot;Data&quot;</span>)</span>
@@ -3459,7 +3459,8 @@ window.Quarto = {
 </section>
 <section id="case-study-2-phylogenetic-multilevel-meta-analysis-on-behavioural-predictability" class="level1">
 <h1>Case study 2: Phylogenetic multilevel meta-analysis on behavioural predictability</h1>
-<div class="cell">
+<p>Horváth et al. (2023) investigated whether behavioural type (mean behaviour) and behavioural predictability (within-individual variation) evolve independently or under system-specific constraints across multiple species. Here we load and prepare the meta-analytical dataset and phylogenetic tree provided in Horváth et al. (2023).</p>
+<div class="cell" data-warnings="false">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ape); <span class="fu">library</span>(Matrix);<span class="fu">library</span>(rotl); <span class="fu">library</span>(rncl);</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Hmisc); <span class="fu">library</span>(lattice); <span class="fu">library</span>(HDInterval); </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
@@ -4395,18 +4396,18 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
-<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pacman)</span>
-<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a><span class="fu">p_load</span>(readxl, tidyverse, metafor, ape, dplyr,</span>
-<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>       here, clubSandwich, corpcor, xtable,</span>
-<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>       kableExtra)</span>
-<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a><span class="co"># load and install packages</span></span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pacman)</span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a><span class="fu">p_load</span>(readxl, tidyverse, metafor, ape, dplyr,</span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>       here, clubSandwich, corpcor, xtable,</span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>       kableExtra)</span>
 <span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a><span class="fu"># Case study 1: Meta-analysis on plant coexistence</span></span>
 <span id="cb16-38"><a href="#cb16-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a>First we want to load the dataset</span>
+<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a>Crawford et al. (2019) used a large meta-analysis dataset of pairwise plant-soil feedback measures to investigate whether these feedbacks contribute to plant species coexistence. First we want to load the meta-analytical dataset provided in Crawford et al. (2019).</span>
 <span id="cb16-40"><a href="#cb16-40" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-43"><a href="#cb16-43" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb16-44"><a href="#cb16-44" aria-hidden="true" tabindex="-1"></a><span class="co"># link to download data file: &quot;https://figshare.com/ndownloader/files/14874749&quot;</span></span>
@@ -4471,130 +4472,136 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb16-105"><a href="#cb16-105" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(results)</span>
 <span id="cb16-106"><a href="#cb16-106" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb16-107"><a href="#cb16-107" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-108"><a href="#cb16-108" aria-hidden="true" tabindex="-1"></a><span class="fu"># Case study 2: Phylogenetic multilevel meta-analysis on behavioural predictability</span></span>
-<span id="cb16-109"><a href="#cb16-109" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-112"><a href="#cb16-112" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb16-113"><a href="#cb16-113" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ape); <span class="fu">library</span>(Matrix);<span class="fu">library</span>(rotl); <span class="fu">library</span>(rncl);</span>
-<span id="cb16-114"><a href="#cb16-114" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Hmisc); <span class="fu">library</span>(lattice); <span class="fu">library</span>(HDInterval); </span>
-<span id="cb16-115"><a href="#cb16-115" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-116"><a href="#cb16-116" aria-hidden="true" tabindex="-1"></a><span class="do">### code from supplementary HTML file</span></span>
-<span id="cb16-117"><a href="#cb16-117" aria-hidden="true" tabindex="-1"></a><span class="co"># Set up meta-analysis data</span></span>
-<span id="cb16-118"><a href="#cb16-118" aria-hidden="true" tabindex="-1"></a>xdata <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="fu">here</span>(<span class="st">&quot;data/case_studies/Metadata_ALL_NEWER.xlsx&quot;</span>))</span>
-<span id="cb16-119"><a href="#cb16-119" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>N_OBS<span class="ot">&lt;-</span><span class="fu">as.numeric</span>(xdata<span class="sc">$</span>N_OBS)</span>
-<span id="cb16-120"><a href="#cb16-120" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>N_ID<span class="ot">&lt;-</span><span class="fu">as.numeric</span>(xdata<span class="sc">$</span>N_ID)</span>
-<span id="cb16-121"><a href="#cb16-121" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>N_rep_mean<span class="ot">&lt;-</span><span class="fu">as.numeric</span>(xdata<span class="sc">$</span>N_rep_mean)</span>
-<span id="cb16-122"><a href="#cb16-122" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>ES.ID<span class="ot">&lt;-</span><span class="fu">as.factor</span>(xdata<span class="sc">$</span>ES.ID)</span>
-<span id="cb16-123"><a href="#cb16-123" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>scientific.name <span class="ot">&lt;-</span> <span class="fu">tolower</span>(<span class="fu">as.factor</span>(xdata<span class="sc">$</span>scientific.name))</span>
-<span id="cb16-124"><a href="#cb16-124" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>species<span class="ot">&lt;-</span><span class="fu">as.factor</span>(xdata<span class="sc">$</span>species)</span>
-<span id="cb16-125"><a href="#cb16-125" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>taxa <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(xdata<span class="sc">$</span>taxa)</span>
-<span id="cb16-126"><a href="#cb16-126" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>study <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(xdata<span class="sc">$</span>study)</span>
-<span id="cb16-127"><a href="#cb16-127" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>behaviour <span class="ot">&lt;-</span><span class="fu">as.factor</span>(xdata<span class="sc">$</span>behaviour)</span>
-<span id="cb16-128"><a href="#cb16-128" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>environment <span class="ot">&lt;-</span><span class="fu">as.factor</span>(xdata<span class="sc">$</span>environment)</span>
-<span id="cb16-129"><a href="#cb16-129" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>measures.use<span class="ot">&lt;-</span><span class="fu">as.factor</span>(xdata<span class="sc">$</span>measures.use)</span>
-<span id="cb16-130"><a href="#cb16-130" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>age <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(xdata<span class="sc">$</span>age)</span>
-<span id="cb16-131"><a href="#cb16-131" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>sex <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(xdata<span class="sc">$</span>sex)</span>
-<span id="cb16-132"><a href="#cb16-132" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>temporal.context <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(xdata<span class="sc">$</span>temporal.context)</span>
-<span id="cb16-133"><a href="#cb16-133" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-134"><a href="#cb16-134" aria-hidden="true" tabindex="-1"></a><span class="do">## transform correlation coefficients to Fisher’s normalized correlation coefficients (Zr)</span></span>
-<span id="cb16-135"><a href="#cb16-135" aria-hidden="true" tabindex="-1"></a>Zr.corr<span class="ot">&lt;-</span><span class="cf">function</span>(r){</span>
-<span id="cb16-136"><a href="#cb16-136" aria-hidden="true" tabindex="-1"></a>  Zr<span class="ot">&lt;-</span><span class="fl">0.5</span><span class="sc">*</span><span class="fu">log</span>((<span class="dv">1</span><span class="sc">+</span>r)<span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>r))</span>
-<span id="cb16-137"><a href="#cb16-137" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb16-138"><a href="#cb16-138" aria-hidden="true" tabindex="-1"></a><span class="co"># get Zr</span></span>
-<span id="cb16-139"><a href="#cb16-139" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>yi.z <span class="ot">&lt;-</span> <span class="fu">Zr.corr</span>(xdata<span class="sc">$</span>Corr)</span>
-<span id="cb16-140"><a href="#cb16-140" aria-hidden="true" tabindex="-1"></a><span class="co"># multiply these Zr values by -1 to make positive correlations equate risk-prone animals being more variable</span></span>
-<span id="cb16-141"><a href="#cb16-141" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>yi.z[xdata<span class="sc">$</span>measures.use <span class="sc">==</span> <span class="st">&#39;latency&#39;</span>]<span class="ot">&lt;-</span>xdata<span class="sc">$</span>yi.z[xdata<span class="sc">$</span>measures.use <span class="sc">==</span> <span class="st">&#39;latency&#39;</span>]<span class="sc">*-</span><span class="dv">1</span></span>
-<span id="cb16-142"><a href="#cb16-142" aria-hidden="true" tabindex="-1"></a><span class="co"># get sampling variances</span></span>
-<span id="cb16-143"><a href="#cb16-143" aria-hidden="true" tabindex="-1"></a>vi<span class="ot">&lt;-</span>xdata<span class="sc">$</span>N_rep_mean<span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>(xdata<span class="sc">$</span>N_ID<span class="dv">-2</span>)<span class="sc">*</span>(xdata<span class="sc">$</span>N_rep_mean<span class="dv">-1</span>))</span>
-<span id="cb16-144"><a href="#cb16-144" aria-hidden="true" tabindex="-1"></a>xdata<span class="ot">&lt;-</span><span class="fu">data.frame</span>(xdata,vi)</span>
-<span id="cb16-145"><a href="#cb16-145" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-146"><a href="#cb16-146" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-147"><a href="#cb16-147" aria-hidden="true" tabindex="-1"></a><span class="do">##### Phylogenetic tree</span></span>
-<span id="cb16-148"><a href="#cb16-148" aria-hidden="true" tabindex="-1"></a>species <span class="ot">&lt;-</span> <span class="fu">unique</span>(xdata<span class="sc">$</span>scientific.name)</span>
-<span id="cb16-149"><a href="#cb16-149" aria-hidden="true" tabindex="-1"></a>species <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(species)</span>
-<span id="cb16-150"><a href="#cb16-150" aria-hidden="true" tabindex="-1"></a>species[,<span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="fu">as.character</span>(species[,<span class="dv">1</span>])</span>
+<span id="cb16-108"><a href="#cb16-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-109"><a href="#cb16-109" aria-hidden="true" tabindex="-1"></a><span class="fu"># Case study 2: Phylogenetic multilevel meta-analysis on behavioural predictability</span></span>
+<span id="cb16-110"><a href="#cb16-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-111"><a href="#cb16-111" aria-hidden="true" tabindex="-1"></a>Horváth et al. (2023) investigated whether behavioural type (mean behaviour) and behavioural predictability (within-individual variation) evolve independently or under system-specific constraints across multiple species.</span>
+<span id="cb16-112"><a href="#cb16-112" aria-hidden="true" tabindex="-1"></a>Here we load and prepare the meta-analytical dataset and phylogenetic tree provided in Horváth et al. (2023). </span>
+<span id="cb16-113"><a href="#cb16-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-116"><a href="#cb16-116" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb16-117"><a href="#cb16-117" aria-hidden="true" tabindex="-1"></a><span class="co">#| warnings: false</span></span>
+<span id="cb16-118"><a href="#cb16-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-119"><a href="#cb16-119" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ape); <span class="fu">library</span>(Matrix);<span class="fu">library</span>(rotl); <span class="fu">library</span>(rncl);</span>
+<span id="cb16-120"><a href="#cb16-120" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Hmisc); <span class="fu">library</span>(lattice); <span class="fu">library</span>(HDInterval); </span>
+<span id="cb16-121"><a href="#cb16-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-122"><a href="#cb16-122" aria-hidden="true" tabindex="-1"></a><span class="do">### code from supplementary HTML file</span></span>
+<span id="cb16-123"><a href="#cb16-123" aria-hidden="true" tabindex="-1"></a><span class="co"># Set up meta-analysis data</span></span>
+<span id="cb16-124"><a href="#cb16-124" aria-hidden="true" tabindex="-1"></a>xdata <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="fu">here</span>(<span class="st">&quot;data/case_studies/Metadata_ALL_NEWER.xlsx&quot;</span>))</span>
+<span id="cb16-125"><a href="#cb16-125" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>N_OBS<span class="ot">&lt;-</span><span class="fu">as.numeric</span>(xdata<span class="sc">$</span>N_OBS)</span>
+<span id="cb16-126"><a href="#cb16-126" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>N_ID<span class="ot">&lt;-</span><span class="fu">as.numeric</span>(xdata<span class="sc">$</span>N_ID)</span>
+<span id="cb16-127"><a href="#cb16-127" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>N_rep_mean<span class="ot">&lt;-</span><span class="fu">as.numeric</span>(xdata<span class="sc">$</span>N_rep_mean)</span>
+<span id="cb16-128"><a href="#cb16-128" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>ES.ID<span class="ot">&lt;-</span><span class="fu">as.factor</span>(xdata<span class="sc">$</span>ES.ID)</span>
+<span id="cb16-129"><a href="#cb16-129" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>scientific.name <span class="ot">&lt;-</span> <span class="fu">tolower</span>(<span class="fu">as.factor</span>(xdata<span class="sc">$</span>scientific.name))</span>
+<span id="cb16-130"><a href="#cb16-130" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>species<span class="ot">&lt;-</span><span class="fu">as.factor</span>(xdata<span class="sc">$</span>species)</span>
+<span id="cb16-131"><a href="#cb16-131" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>taxa <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(xdata<span class="sc">$</span>taxa)</span>
+<span id="cb16-132"><a href="#cb16-132" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>study <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(xdata<span class="sc">$</span>study)</span>
+<span id="cb16-133"><a href="#cb16-133" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>behaviour <span class="ot">&lt;-</span><span class="fu">as.factor</span>(xdata<span class="sc">$</span>behaviour)</span>
+<span id="cb16-134"><a href="#cb16-134" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>environment <span class="ot">&lt;-</span><span class="fu">as.factor</span>(xdata<span class="sc">$</span>environment)</span>
+<span id="cb16-135"><a href="#cb16-135" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>measures.use<span class="ot">&lt;-</span><span class="fu">as.factor</span>(xdata<span class="sc">$</span>measures.use)</span>
+<span id="cb16-136"><a href="#cb16-136" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>age <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(xdata<span class="sc">$</span>age)</span>
+<span id="cb16-137"><a href="#cb16-137" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>sex <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(xdata<span class="sc">$</span>sex)</span>
+<span id="cb16-138"><a href="#cb16-138" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>temporal.context <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(xdata<span class="sc">$</span>temporal.context)</span>
+<span id="cb16-139"><a href="#cb16-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-140"><a href="#cb16-140" aria-hidden="true" tabindex="-1"></a><span class="do">## transform correlation coefficients to Fisher’s normalized correlation coefficients (Zr)</span></span>
+<span id="cb16-141"><a href="#cb16-141" aria-hidden="true" tabindex="-1"></a>Zr.corr<span class="ot">&lt;-</span><span class="cf">function</span>(r){</span>
+<span id="cb16-142"><a href="#cb16-142" aria-hidden="true" tabindex="-1"></a>  Zr<span class="ot">&lt;-</span><span class="fl">0.5</span><span class="sc">*</span><span class="fu">log</span>((<span class="dv">1</span><span class="sc">+</span>r)<span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>r))</span>
+<span id="cb16-143"><a href="#cb16-143" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb16-144"><a href="#cb16-144" aria-hidden="true" tabindex="-1"></a><span class="co"># get Zr</span></span>
+<span id="cb16-145"><a href="#cb16-145" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>yi.z <span class="ot">&lt;-</span> <span class="fu">Zr.corr</span>(xdata<span class="sc">$</span>Corr)</span>
+<span id="cb16-146"><a href="#cb16-146" aria-hidden="true" tabindex="-1"></a><span class="co"># multiply these Zr values by -1 to make positive correlations equate risk-prone animals being more variable</span></span>
+<span id="cb16-147"><a href="#cb16-147" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>yi.z[xdata<span class="sc">$</span>measures.use <span class="sc">==</span> <span class="st">&#39;latency&#39;</span>]<span class="ot">&lt;-</span>xdata<span class="sc">$</span>yi.z[xdata<span class="sc">$</span>measures.use <span class="sc">==</span> <span class="st">&#39;latency&#39;</span>]<span class="sc">*-</span><span class="dv">1</span></span>
+<span id="cb16-148"><a href="#cb16-148" aria-hidden="true" tabindex="-1"></a><span class="co"># get sampling variances</span></span>
+<span id="cb16-149"><a href="#cb16-149" aria-hidden="true" tabindex="-1"></a>vi<span class="ot">&lt;-</span>xdata<span class="sc">$</span>N_rep_mean<span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>(xdata<span class="sc">$</span>N_ID<span class="dv">-2</span>)<span class="sc">*</span>(xdata<span class="sc">$</span>N_rep_mean<span class="dv">-1</span>))</span>
+<span id="cb16-150"><a href="#cb16-150" aria-hidden="true" tabindex="-1"></a>xdata<span class="ot">&lt;-</span><span class="fu">data.frame</span>(xdata,vi)</span>
 <span id="cb16-151"><a href="#cb16-151" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-152"><a href="#cb16-152" aria-hidden="true" tabindex="-1"></a>taxa <span class="ot">&lt;-</span> <span class="fu">tnrs_match_names</span>(<span class="fu">unique</span>(xdata<span class="sc">$</span>scientific.name), <span class="at">context=</span><span class="st">&quot;Animals&quot;</span>)</span>
-<span id="cb16-153"><a href="#cb16-153" aria-hidden="true" tabindex="-1"></a>taxon_map <span class="ot">&lt;-</span> <span class="fu">structure</span>(taxa<span class="sc">$</span>search_string, <span class="at">names=</span>taxa<span class="sc">$</span>unique_name)</span>
-<span id="cb16-154"><a href="#cb16-154" aria-hidden="true" tabindex="-1"></a>tr<span class="ot">&lt;-</span><span class="fu">tol_induced_subtree</span>(<span class="fu">ott_id</span>(taxa)[<span class="fu">is_in_tree</span>(<span class="fu">ott_id</span>(taxa))])</span>
-<span id="cb16-155"><a href="#cb16-155" aria-hidden="true" tabindex="-1"></a>tr <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="fu">here</span>(<span class="st">&quot;data/case_studies/phylotree.rds&quot;</span>))</span>
-<span id="cb16-156"><a href="#cb16-156" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-157"><a href="#cb16-157" aria-hidden="true" tabindex="-1"></a><span class="co"># clean up tip labels</span></span>
-<span id="cb16-158"><a href="#cb16-158" aria-hidden="true" tabindex="-1"></a>otl_tips <span class="ot">&lt;-</span> <span class="fu">strip_ott_ids</span>(tr<span class="sc">$</span>tip.label, <span class="at">remove_underscores=</span><span class="cn">TRUE</span>)</span>
-<span id="cb16-159"><a href="#cb16-159" aria-hidden="true" tabindex="-1"></a>tr<span class="sc">$</span>tip.label <span class="ot">&lt;-</span> taxon_map[ otl_tips ]</span>
-<span id="cb16-160"><a href="#cb16-160" aria-hidden="true" tabindex="-1"></a><span class="fu">any</span>(<span class="fu">duplicated</span>(tr<span class="sc">$</span>node.label))</span>
-<span id="cb16-161"><a href="#cb16-161" aria-hidden="true" tabindex="-1"></a>tr<span class="sc">$</span>node.label <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
-<span id="cb16-162"><a href="#cb16-162" aria-hidden="true" tabindex="-1"></a>xdata <span class="ot">&lt;-</span> xdata[xdata<span class="sc">$</span>scientific.name <span class="sc">%in%</span> tr<span class="sc">$</span>tip.label, ]</span>
-<span id="cb16-163"><a href="#cb16-163" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-164"><a href="#cb16-164" aria-hidden="true" tabindex="-1"></a><span class="co"># create VCV phylogenetic matrix</span></span>
-<span id="cb16-165"><a href="#cb16-165" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>animal <span class="ot">&lt;-</span> xdata<span class="sc">$</span>scientific.name</span>
-<span id="cb16-166"><a href="#cb16-166" aria-hidden="true" tabindex="-1"></a>phylo_matrix <span class="ot">&lt;-</span> <span class="fu">vcv</span>(<span class="fu">compute.brlen</span>(tr, <span class="at">corr =</span> T))</span>
-<span id="cb16-167"><a href="#cb16-167" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-168"><a href="#cb16-168" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-152"><a href="#cb16-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-153"><a href="#cb16-153" aria-hidden="true" tabindex="-1"></a><span class="do">##### Phylogenetic tree</span></span>
+<span id="cb16-154"><a href="#cb16-154" aria-hidden="true" tabindex="-1"></a>species <span class="ot">&lt;-</span> <span class="fu">unique</span>(xdata<span class="sc">$</span>scientific.name)</span>
+<span id="cb16-155"><a href="#cb16-155" aria-hidden="true" tabindex="-1"></a>species <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(species)</span>
+<span id="cb16-156"><a href="#cb16-156" aria-hidden="true" tabindex="-1"></a>species[,<span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="fu">as.character</span>(species[,<span class="dv">1</span>])</span>
+<span id="cb16-157"><a href="#cb16-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-158"><a href="#cb16-158" aria-hidden="true" tabindex="-1"></a>taxa <span class="ot">&lt;-</span> <span class="fu">tnrs_match_names</span>(<span class="fu">unique</span>(xdata<span class="sc">$</span>scientific.name), <span class="at">context=</span><span class="st">&quot;Animals&quot;</span>)</span>
+<span id="cb16-159"><a href="#cb16-159" aria-hidden="true" tabindex="-1"></a>taxon_map <span class="ot">&lt;-</span> <span class="fu">structure</span>(taxa<span class="sc">$</span>search_string, <span class="at">names=</span>taxa<span class="sc">$</span>unique_name)</span>
+<span id="cb16-160"><a href="#cb16-160" aria-hidden="true" tabindex="-1"></a>tr<span class="ot">&lt;-</span><span class="fu">tol_induced_subtree</span>(<span class="fu">ott_id</span>(taxa)[<span class="fu">is_in_tree</span>(<span class="fu">ott_id</span>(taxa))])</span>
+<span id="cb16-161"><a href="#cb16-161" aria-hidden="true" tabindex="-1"></a>tr <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="fu">here</span>(<span class="st">&quot;data/case_studies/phylotree.rds&quot;</span>))</span>
+<span id="cb16-162"><a href="#cb16-162" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-163"><a href="#cb16-163" aria-hidden="true" tabindex="-1"></a><span class="co"># clean up tip labels</span></span>
+<span id="cb16-164"><a href="#cb16-164" aria-hidden="true" tabindex="-1"></a>otl_tips <span class="ot">&lt;-</span> <span class="fu">strip_ott_ids</span>(tr<span class="sc">$</span>tip.label, <span class="at">remove_underscores=</span><span class="cn">TRUE</span>)</span>
+<span id="cb16-165"><a href="#cb16-165" aria-hidden="true" tabindex="-1"></a>tr<span class="sc">$</span>tip.label <span class="ot">&lt;-</span> taxon_map[ otl_tips ]</span>
+<span id="cb16-166"><a href="#cb16-166" aria-hidden="true" tabindex="-1"></a><span class="fu">any</span>(<span class="fu">duplicated</span>(tr<span class="sc">$</span>node.label))</span>
+<span id="cb16-167"><a href="#cb16-167" aria-hidden="true" tabindex="-1"></a>tr<span class="sc">$</span>node.label <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb16-168"><a href="#cb16-168" aria-hidden="true" tabindex="-1"></a>xdata <span class="ot">&lt;-</span> xdata[xdata<span class="sc">$</span>scientific.name <span class="sc">%in%</span> tr<span class="sc">$</span>tip.label, ]</span>
 <span id="cb16-169"><a href="#cb16-169" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-170"><a href="#cb16-170" aria-hidden="true" tabindex="-1"></a>Now, let&#39;s set up the vector of within-study correlations $\rho$ that we want to test (including $\rho=0$). Then we specify the sampling error variances (the diagonal of the assumed sampling error $\mathbf{V^*}$). For each $\rho$ value we derive the assumed sampling error $\mathbf{V^*}$, fit the phylogenetic meta-analytical model with a t-distribution and using the adjusted degrees of freedom as recommended by \texttt{metafor} (see <span class="co">[</span><span class="ot">more recommended for metafor practices here</span><span class="co">](https://wviechtb.github.io/metafor/reference/misc-recs.html)</span>).</span>
-<span id="cb16-171"><a href="#cb16-171" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-172"><a href="#cb16-172" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-175"><a href="#cb16-175" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb16-176"><a href="#cb16-176" aria-hidden="true" tabindex="-1"></a><span class="co"># corr values to test</span></span>
-<span id="cb16-177"><a href="#cb16-177" aria-hidden="true" tabindex="-1"></a>cor_values <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span>)</span>
+<span id="cb16-170"><a href="#cb16-170" aria-hidden="true" tabindex="-1"></a><span class="co"># create VCV phylogenetic matrix</span></span>
+<span id="cb16-171"><a href="#cb16-171" aria-hidden="true" tabindex="-1"></a>xdata<span class="sc">$</span>animal <span class="ot">&lt;-</span> xdata<span class="sc">$</span>scientific.name</span>
+<span id="cb16-172"><a href="#cb16-172" aria-hidden="true" tabindex="-1"></a>phylo_matrix <span class="ot">&lt;-</span> <span class="fu">vcv</span>(<span class="fu">compute.brlen</span>(tr, <span class="at">corr =</span> T))</span>
+<span id="cb16-173"><a href="#cb16-173" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-174"><a href="#cb16-174" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-175"><a href="#cb16-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-176"><a href="#cb16-176" aria-hidden="true" tabindex="-1"></a>Now, let&#39;s set up the vector of within-study correlations $\rho$ that we want to test (including $\rho=0$). Then we specify the sampling error variances (the diagonal of the assumed sampling error $\mathbf{V^*}$). For each $\rho$ value we derive the assumed sampling error $\mathbf{V^*}$, fit the phylogenetic meta-analytical model with a t-distribution and using the adjusted degrees of freedom as recommended by \texttt{metafor} (see <span class="co">[</span><span class="ot">more recommended for metafor practices here</span><span class="co">](https://wviechtb.github.io/metafor/reference/misc-recs.html)</span>).</span>
+<span id="cb16-177"><a href="#cb16-177" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-178"><a href="#cb16-178" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-179"><a href="#cb16-179" aria-hidden="true" tabindex="-1"></a><span class="co"># empty dataframe to store results</span></span>
-<span id="cb16-180"><a href="#cb16-180" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">rho =</span> <span class="fu">numeric</span>(), <span class="at">beta =</span> <span class="fu">numeric</span>(),</span>
-<span id="cb16-181"><a href="#cb16-181" aria-hidden="true" tabindex="-1"></a>                      <span class="at">se =</span> <span class="fu">numeric</span>(), <span class="at">se.cr1 =</span> <span class="fu">numeric</span>(), </span>
-<span id="cb16-182"><a href="#cb16-182" aria-hidden="true" tabindex="-1"></a>                      <span class="at">pval =</span> <span class="fu">numeric</span>(), <span class="at">pval.cr1 =</span> <span class="fu">numeric</span>(),</span>
-<span id="cb16-183"><a href="#cb16-183" aria-hidden="true" tabindex="-1"></a>                      <span class="at">s2.study =</span> <span class="fu">numeric</span>(), <span class="at">s2.es =</span> <span class="fu">numeric</span>(),</span>
-<span id="cb16-184"><a href="#cb16-184" aria-hidden="true" tabindex="-1"></a>                      <span class="at">s2.phylogeny =</span> <span class="fu">numeric</span>(), <span class="at">s2.species =</span> <span class="fu">numeric</span>(),</span>
-<span id="cb16-185"><a href="#cb16-185" aria-hidden="true" tabindex="-1"></a>                      <span class="at">loglik =</span> <span class="fu">numeric</span>())</span>
-<span id="cb16-186"><a href="#cb16-186" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-187"><a href="#cb16-187" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-188"><a href="#cb16-188" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (rho <span class="cf">in</span> cor_values) {</span>
-<span id="cb16-189"><a href="#cb16-189" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb16-190"><a href="#cb16-190" aria-hidden="true" tabindex="-1"></a>  <span class="co"># get VCV matrix </span></span>
-<span id="cb16-191"><a href="#cb16-191" aria-hidden="true" tabindex="-1"></a>  V <span class="ot">&lt;-</span> <span class="fu">vcalc</span>(vi,</span>
-<span id="cb16-192"><a href="#cb16-192" aria-hidden="true" tabindex="-1"></a>             <span class="at">cluster=</span>study,</span>
-<span id="cb16-193"><a href="#cb16-193" aria-hidden="true" tabindex="-1"></a>             <span class="at">obs=</span>ES.ID,</span>
-<span id="cb16-194"><a href="#cb16-194" aria-hidden="true" tabindex="-1"></a>             <span class="at">data=</span>xdata,</span>
-<span id="cb16-195"><a href="#cb16-195" aria-hidden="true" tabindex="-1"></a>             <span class="at">rho=</span>rho)</span>
-<span id="cb16-196"><a href="#cb16-196" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb16-197"><a href="#cb16-197" aria-hidden="true" tabindex="-1"></a>  <span class="co"># fit the multilevel meta-analysis model with this VCV</span></span>
-<span id="cb16-198"><a href="#cb16-198" aria-hidden="true" tabindex="-1"></a>  model <span class="ot">&lt;-</span> <span class="fu">rma.mv</span>(<span class="at">yi =</span> yi.z, </span>
-<span id="cb16-199"><a href="#cb16-199" aria-hidden="true" tabindex="-1"></a>                  <span class="at">V =</span> V,</span>
-<span id="cb16-200"><a href="#cb16-200" aria-hidden="true" tabindex="-1"></a>                  <span class="at">random =</span> <span class="fu">list</span>(<span class="sc">~</span><span class="dv">1</span> <span class="sc">|</span> study,</span>
-<span id="cb16-201"><a href="#cb16-201" aria-hidden="true" tabindex="-1"></a>                                <span class="sc">~</span><span class="dv">1</span> <span class="sc">|</span> ES.ID,</span>
-<span id="cb16-202"><a href="#cb16-202" aria-hidden="true" tabindex="-1"></a>                                <span class="sc">~</span><span class="dv">1</span> <span class="sc">|</span> animal,   <span class="co">#phylogenetic component</span></span>
-<span id="cb16-203"><a href="#cb16-203" aria-hidden="true" tabindex="-1"></a>                                <span class="sc">~</span><span class="dv">1</span> <span class="sc">|</span> species), <span class="co">#non phylogenetic component</span></span>
-<span id="cb16-204"><a href="#cb16-204" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> xdata,</span>
-<span id="cb16-205"><a href="#cb16-205" aria-hidden="true" tabindex="-1"></a>                  <span class="at">R =</span> <span class="fu">list</span>(<span class="at">animal =</span> phylo_matrix),</span>
-<span id="cb16-206"><a href="#cb16-206" aria-hidden="true" tabindex="-1"></a>                  <span class="at">test =</span> <span class="st">&quot;t&quot;</span>,</span>
-<span id="cb16-207"><a href="#cb16-207" aria-hidden="true" tabindex="-1"></a>                  <span class="at">dfs =</span> <span class="st">&quot;contain&quot;</span>,</span>
-<span id="cb16-208"><a href="#cb16-208" aria-hidden="true" tabindex="-1"></a>                  <span class="at">method =</span> <span class="st">&quot;REML&quot;</span>)</span>
-<span id="cb16-209"><a href="#cb16-209" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb16-210"><a href="#cb16-210" aria-hidden="true" tabindex="-1"></a>  <span class="co"># get CR1 estimates</span></span>
-<span id="cb16-211"><a href="#cb16-211" aria-hidden="true" tabindex="-1"></a>  mod.cr1 <span class="ot">&lt;-</span> <span class="fu">robust</span>(model, <span class="at">cluster =</span> study, <span class="at">adjust=</span><span class="cn">TRUE</span>)</span>
-<span id="cb16-212"><a href="#cb16-212" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb16-213"><a href="#cb16-213" aria-hidden="true" tabindex="-1"></a>  <span class="co"># store model output</span></span>
-<span id="cb16-214"><a href="#cb16-214" aria-hidden="true" tabindex="-1"></a>  results <span class="ot">&lt;-</span> <span class="fu">rbind</span>(results, <span class="fu">data.frame</span>(<span class="at">rho =</span> rho,</span>
-<span id="cb16-215"><a href="#cb16-215" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">beta =</span> <span class="fu">round</span>(model<span class="sc">$</span>beta[<span class="dv">1</span>], <span class="dv">2</span>),</span>
-<span id="cb16-216"><a href="#cb16-216" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">se =</span> <span class="fu">round</span>(model<span class="sc">$</span>se[<span class="dv">1</span>], <span class="dv">3</span>),</span>
-<span id="cb16-217"><a href="#cb16-217" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">se.cr1 =</span> <span class="fu">round</span>(mod.cr1<span class="sc">$</span>se, <span class="dv">3</span>),</span>
-<span id="cb16-218"><a href="#cb16-218" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">pval =</span> <span class="fu">round</span>(model<span class="sc">$</span>pval[<span class="dv">1</span>], <span class="dv">4</span>),</span>
-<span id="cb16-219"><a href="#cb16-219" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">pval.cr1 =</span> <span class="fu">round</span>(mod.cr1<span class="sc">$</span>pval, <span class="dv">4</span>),</span>
-<span id="cb16-220"><a href="#cb16-220" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">s2.es =</span> <span class="fu">round</span>(model<span class="sc">$</span>sigma2[<span class="dv">2</span>], <span class="dv">3</span>),</span>
-<span id="cb16-221"><a href="#cb16-221" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">s2.study =</span> <span class="fu">round</span>(model<span class="sc">$</span>sigma2[<span class="dv">1</span>], <span class="dv">3</span>),</span>
-<span id="cb16-222"><a href="#cb16-222" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">s2.phylogeny =</span> <span class="fu">round</span>(model<span class="sc">$</span>sigma2[<span class="dv">3</span>], <span class="dv">3</span>),</span>
-<span id="cb16-223"><a href="#cb16-223" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">s2.species =</span> <span class="fu">round</span>(model<span class="sc">$</span>sigma2[<span class="dv">4</span>], <span class="dv">3</span>),</span>
-<span id="cb16-224"><a href="#cb16-224" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">loglik =</span> <span class="fu">round</span>(<span class="fu">logLik</span>(model), <span class="dv">3</span>)))</span>
-<span id="cb16-225"><a href="#cb16-225" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb16-226"><a href="#cb16-226" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb16-227"><a href="#cb16-227" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-228"><a href="#cb16-228" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(results)</span>
-<span id="cb16-229"><a href="#cb16-229" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb16-230"><a href="#cb16-230" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-231"><a href="#cb16-231" aria-hidden="true" tabindex="-1"></a><span class="fu"># References</span></span>
-<span id="cb16-232"><a href="#cb16-232" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-233"><a href="#cb16-233" aria-hidden="true" tabindex="-1"></a>Crawford, K. M., Bauer, J. T., Comita, L. S., Eppinga, M. B., Johnson, D. J., Mangan, S. A., Queenborough, S. A., Strand, A. E., Suding, K. N., Umbanhowar, J., &amp; Bever, J. D. (2019). When and where plant-soil feedback may promote plant coexistence: a meta-analysis. Ecology letters, 22(8), 1274–1284. https://doi.org/10.1111/ele.13278</span>
-<span id="cb16-234"><a href="#cb16-234" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-235"><a href="#cb16-235" aria-hidden="true" tabindex="-1"></a>Horváth, G., Garamszegi, L. Z., &amp; Herczeg, G. (2023). Phylogenetic meta-analysis reveals system-specific behavioural type–behavioural predictability correlations. Royal Society Open Science, 10(9). https://doi.org/10.1098/rsos.230303</span>
+<span id="cb16-181"><a href="#cb16-181" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb16-182"><a href="#cb16-182" aria-hidden="true" tabindex="-1"></a><span class="co"># corr values to test</span></span>
+<span id="cb16-183"><a href="#cb16-183" aria-hidden="true" tabindex="-1"></a>cor_values <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span>)</span>
+<span id="cb16-184"><a href="#cb16-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-185"><a href="#cb16-185" aria-hidden="true" tabindex="-1"></a><span class="co"># empty dataframe to store results</span></span>
+<span id="cb16-186"><a href="#cb16-186" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">rho =</span> <span class="fu">numeric</span>(), <span class="at">beta =</span> <span class="fu">numeric</span>(),</span>
+<span id="cb16-187"><a href="#cb16-187" aria-hidden="true" tabindex="-1"></a>                      <span class="at">se =</span> <span class="fu">numeric</span>(), <span class="at">se.cr1 =</span> <span class="fu">numeric</span>(), </span>
+<span id="cb16-188"><a href="#cb16-188" aria-hidden="true" tabindex="-1"></a>                      <span class="at">pval =</span> <span class="fu">numeric</span>(), <span class="at">pval.cr1 =</span> <span class="fu">numeric</span>(),</span>
+<span id="cb16-189"><a href="#cb16-189" aria-hidden="true" tabindex="-1"></a>                      <span class="at">s2.study =</span> <span class="fu">numeric</span>(), <span class="at">s2.es =</span> <span class="fu">numeric</span>(),</span>
+<span id="cb16-190"><a href="#cb16-190" aria-hidden="true" tabindex="-1"></a>                      <span class="at">s2.phylogeny =</span> <span class="fu">numeric</span>(), <span class="at">s2.species =</span> <span class="fu">numeric</span>(),</span>
+<span id="cb16-191"><a href="#cb16-191" aria-hidden="true" tabindex="-1"></a>                      <span class="at">loglik =</span> <span class="fu">numeric</span>())</span>
+<span id="cb16-192"><a href="#cb16-192" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-193"><a href="#cb16-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-194"><a href="#cb16-194" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (rho <span class="cf">in</span> cor_values) {</span>
+<span id="cb16-195"><a href="#cb16-195" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb16-196"><a href="#cb16-196" aria-hidden="true" tabindex="-1"></a>  <span class="co"># get VCV matrix </span></span>
+<span id="cb16-197"><a href="#cb16-197" aria-hidden="true" tabindex="-1"></a>  V <span class="ot">&lt;-</span> <span class="fu">vcalc</span>(vi,</span>
+<span id="cb16-198"><a href="#cb16-198" aria-hidden="true" tabindex="-1"></a>             <span class="at">cluster=</span>study,</span>
+<span id="cb16-199"><a href="#cb16-199" aria-hidden="true" tabindex="-1"></a>             <span class="at">obs=</span>ES.ID,</span>
+<span id="cb16-200"><a href="#cb16-200" aria-hidden="true" tabindex="-1"></a>             <span class="at">data=</span>xdata,</span>
+<span id="cb16-201"><a href="#cb16-201" aria-hidden="true" tabindex="-1"></a>             <span class="at">rho=</span>rho)</span>
+<span id="cb16-202"><a href="#cb16-202" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb16-203"><a href="#cb16-203" aria-hidden="true" tabindex="-1"></a>  <span class="co"># fit the multilevel meta-analysis model with this VCV</span></span>
+<span id="cb16-204"><a href="#cb16-204" aria-hidden="true" tabindex="-1"></a>  model <span class="ot">&lt;-</span> <span class="fu">rma.mv</span>(<span class="at">yi =</span> yi.z, </span>
+<span id="cb16-205"><a href="#cb16-205" aria-hidden="true" tabindex="-1"></a>                  <span class="at">V =</span> V,</span>
+<span id="cb16-206"><a href="#cb16-206" aria-hidden="true" tabindex="-1"></a>                  <span class="at">random =</span> <span class="fu">list</span>(<span class="sc">~</span><span class="dv">1</span> <span class="sc">|</span> study,</span>
+<span id="cb16-207"><a href="#cb16-207" aria-hidden="true" tabindex="-1"></a>                                <span class="sc">~</span><span class="dv">1</span> <span class="sc">|</span> ES.ID,</span>
+<span id="cb16-208"><a href="#cb16-208" aria-hidden="true" tabindex="-1"></a>                                <span class="sc">~</span><span class="dv">1</span> <span class="sc">|</span> animal,   <span class="co">#phylogenetic component</span></span>
+<span id="cb16-209"><a href="#cb16-209" aria-hidden="true" tabindex="-1"></a>                                <span class="sc">~</span><span class="dv">1</span> <span class="sc">|</span> species), <span class="co">#non phylogenetic component</span></span>
+<span id="cb16-210"><a href="#cb16-210" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> xdata,</span>
+<span id="cb16-211"><a href="#cb16-211" aria-hidden="true" tabindex="-1"></a>                  <span class="at">R =</span> <span class="fu">list</span>(<span class="at">animal =</span> phylo_matrix),</span>
+<span id="cb16-212"><a href="#cb16-212" aria-hidden="true" tabindex="-1"></a>                  <span class="at">test =</span> <span class="st">&quot;t&quot;</span>,</span>
+<span id="cb16-213"><a href="#cb16-213" aria-hidden="true" tabindex="-1"></a>                  <span class="at">dfs =</span> <span class="st">&quot;contain&quot;</span>,</span>
+<span id="cb16-214"><a href="#cb16-214" aria-hidden="true" tabindex="-1"></a>                  <span class="at">method =</span> <span class="st">&quot;REML&quot;</span>)</span>
+<span id="cb16-215"><a href="#cb16-215" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb16-216"><a href="#cb16-216" aria-hidden="true" tabindex="-1"></a>  <span class="co"># get CR1 estimates</span></span>
+<span id="cb16-217"><a href="#cb16-217" aria-hidden="true" tabindex="-1"></a>  mod.cr1 <span class="ot">&lt;-</span> <span class="fu">robust</span>(model, <span class="at">cluster =</span> study, <span class="at">adjust=</span><span class="cn">TRUE</span>)</span>
+<span id="cb16-218"><a href="#cb16-218" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb16-219"><a href="#cb16-219" aria-hidden="true" tabindex="-1"></a>  <span class="co"># store model output</span></span>
+<span id="cb16-220"><a href="#cb16-220" aria-hidden="true" tabindex="-1"></a>  results <span class="ot">&lt;-</span> <span class="fu">rbind</span>(results, <span class="fu">data.frame</span>(<span class="at">rho =</span> rho,</span>
+<span id="cb16-221"><a href="#cb16-221" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">beta =</span> <span class="fu">round</span>(model<span class="sc">$</span>beta[<span class="dv">1</span>], <span class="dv">2</span>),</span>
+<span id="cb16-222"><a href="#cb16-222" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">se =</span> <span class="fu">round</span>(model<span class="sc">$</span>se[<span class="dv">1</span>], <span class="dv">3</span>),</span>
+<span id="cb16-223"><a href="#cb16-223" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">se.cr1 =</span> <span class="fu">round</span>(mod.cr1<span class="sc">$</span>se, <span class="dv">3</span>),</span>
+<span id="cb16-224"><a href="#cb16-224" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">pval =</span> <span class="fu">round</span>(model<span class="sc">$</span>pval[<span class="dv">1</span>], <span class="dv">4</span>),</span>
+<span id="cb16-225"><a href="#cb16-225" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">pval.cr1 =</span> <span class="fu">round</span>(mod.cr1<span class="sc">$</span>pval, <span class="dv">4</span>),</span>
+<span id="cb16-226"><a href="#cb16-226" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">s2.es =</span> <span class="fu">round</span>(model<span class="sc">$</span>sigma2[<span class="dv">2</span>], <span class="dv">3</span>),</span>
+<span id="cb16-227"><a href="#cb16-227" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">s2.study =</span> <span class="fu">round</span>(model<span class="sc">$</span>sigma2[<span class="dv">1</span>], <span class="dv">3</span>),</span>
+<span id="cb16-228"><a href="#cb16-228" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">s2.phylogeny =</span> <span class="fu">round</span>(model<span class="sc">$</span>sigma2[<span class="dv">3</span>], <span class="dv">3</span>),</span>
+<span id="cb16-229"><a href="#cb16-229" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">s2.species =</span> <span class="fu">round</span>(model<span class="sc">$</span>sigma2[<span class="dv">4</span>], <span class="dv">3</span>),</span>
+<span id="cb16-230"><a href="#cb16-230" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">loglik =</span> <span class="fu">round</span>(<span class="fu">logLik</span>(model), <span class="dv">3</span>)))</span>
+<span id="cb16-231"><a href="#cb16-231" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb16-232"><a href="#cb16-232" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb16-233"><a href="#cb16-233" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-234"><a href="#cb16-234" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(results)</span>
+<span id="cb16-235"><a href="#cb16-235" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-236"><a href="#cb16-236" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-237"><a href="#cb16-237" aria-hidden="true" tabindex="-1"></a><span class="fu"># References</span></span>
+<span id="cb16-238"><a href="#cb16-238" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-239"><a href="#cb16-239" aria-hidden="true" tabindex="-1"></a>Crawford, K. M., Bauer, J. T., Comita, L. S., Eppinga, M. B., Johnson, D. J., Mangan, S. A., Queenborough, S. A., Strand, A. E., Suding, K. N., Umbanhowar, J., &amp; Bever, J. D. (2019). When and where plant-soil feedback may promote plant coexistence: a meta-analysis. Ecology letters, 22(8), 1274–1284. https://doi.org/10.1111/ele.13278</span>
+<span id="cb16-240"><a href="#cb16-240" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-241"><a href="#cb16-241" aria-hidden="true" tabindex="-1"></a>Horváth, G., Garamszegi, L. Z., &amp; Herczeg, G. (2023). Phylogenetic meta-analysis reveals system-specific behavioural type–behavioural predictability correlations. Royal Society Open Science, 10(9). https://doi.org/10.1098/rsos.230303</span>
 </code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

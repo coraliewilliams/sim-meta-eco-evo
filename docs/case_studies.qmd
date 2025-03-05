@@ -23,18 +23,18 @@ This page is a summary of the results from the two case studies comparing differ
 
 ```{r}
 #| include: false
-#| echo: false
+
+# load and install packages
 library(pacman)
 p_load(readxl, tidyverse, metafor, ape, dplyr,
        here, clubSandwich, corpcor, xtable,
        kableExtra)
 
-
 ```
 
 # Case study 1: Meta-analysis on plant coexistence
 
-First we want to load the dataset
+Crawford et al. (2019) used a large meta-analysis dataset of pairwise plant-soil feedback measures to investigate whether these feedbacks contribute to plant species coexistence. First we want to load the meta-analytical dataset provided in Crawford et al. (2019).
 
 ```{r}
 # link to download data file: "https://figshare.com/ndownloader/files/14874749"
@@ -100,11 +100,14 @@ for (rho in cor_values) {
 kable(results)
 ```
 
+
 # Case study 2: Phylogenetic multilevel meta-analysis on behavioural predictability
 
+Horváth et al. (2023) investigated whether behavioural type (mean behaviour) and behavioural predictability (within-individual variation) evolve independently or under system-specific constraints across multiple species.
+Here we load and prepare the meta-analytical dataset and phylogenetic tree provided in Horváth et al. (2023). 
+
 ```{r}
-#| include: false
-#| echo: false
+#| warnings: false
 
 library(ape); library(Matrix);library(rotl); library(rncl);
 library(Hmisc); library(lattice); library(HDInterval); 
