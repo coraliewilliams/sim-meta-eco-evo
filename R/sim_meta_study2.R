@@ -58,9 +58,8 @@ species[sample(k, k.species)] <- seq_len(k.species)
 species.phylo <- species
 
 # simulate tree
-tree.power <- 0.3 # set tree power - what is best here?
 tree <- rtree(k.species, tip.label=seq_len(k.species))
-tree <- compute.brlen(tree, power = tree.power)
+tree <- compute.brlen(tree, power = 1) # based on Cinar et al., 2022
 P <- vcv(tree, corr=TRUE)
 P <- P[order(as.numeric(rownames(P))), order(as.numeric(rownames(P)))]
 

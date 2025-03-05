@@ -13,11 +13,9 @@ p_load(metafor, MASS, clubSandwich, ape)
 
 ### load job array
 tab <- read.csv("job_array_study2.sub.csv")
-#tab <-  scen.tab2.sub
 
 ### job number from pbs script
 job <- as.numeric(Sys.getenv("PBS_ARRAY_INDEX"))
-#job <- 5 # for testing locally
 
 ### parameters for current job
 name <- tab$name[tab$job_number == job] 
@@ -65,7 +63,7 @@ P <- P[order(as.numeric(rownames(P))), order(as.numeric(rownames(P)))]
 ### simulate fixed effects
 # set up parameters
 b0 <- 0.2         # intercept
-b1 <- 0.6         # slope of measurement type effect difference (between reference = 0 and 1)
+b1 <- 0.6         # slope of measurement type effect difference (between reference = 0 and 1) -- study level
 b2 <- 0.2         # slope of weight effect (species level) => continuous (log)
 b3 <- 0.5         # sex (observation level) => slope of sex effect difference (reference = 0)
 
@@ -76,7 +74,7 @@ species_effect <- rnorm(k.species, 0, sqrt(sigma2.bs))  # (assume mean centered)
 # set up fixed predictors
 x1 <- measurement[study] # study level predictor (measurement type)
 x2 <- species_effect[species]    # species-level predictor (weight)
-x3 <- sample(0:1, size = k, replace = T)    # observation-level predictor (sex)
+x3 <- sample(0:1, size = k, replace = T)  # observation-level predictor (sex)
 
 
 ### simulate random effects
@@ -86,10 +84,7 @@ u.n <- rnorm(k.species, 0, sqrt(sigma2.n))[species]
 u.p <- mvrnorm(1, mu=rep(0,k.species), Sigma=sigma2.p*P)[species]
 
 ### simulate sample variance 
-vi <- rbeta(k, 2, 20)    # same settings as Cinar et al., 2022
-
-#### simulate sampling error
-#ei <- rnorm(k, 0, sqrt(vi))
+vi <- rbeta(k, 2, 20)    # same settings as Cinar et al., 2022 (avg vi=0.091)
 
 ### set up sampling error VCV matrix for within study dependent effect sizes
 VCV <- matrix(0, nrow = k, ncol = k) 
@@ -112,7 +107,7 @@ mi <- mvrnorm(n = 1, mu = rep(0, length(vi)), Sigma = VCV)
 
 
 
-########### Get estimates  ------------------------------------------------------------------
+########### Get effect size estimates  ------------------------------------------------------------------
 
 yi <- b0 + ## intercept
   b1*x1 +  ## measurement type (study-level)
@@ -130,6 +125,7 @@ dat <- data.frame(name = name, scenario = scen, seed = seed, job_number = job,
                   u.u = u.u, u.s = u.s, u.n = u.n, u.p = u.p,  mi = mi)
 # save simulated data in R file
 save(list = "dat", file = paste0("data/simdat_", job, ".RDATA"))
+
 
 
 ########### Run model 1: phylogenetic multilevel model  ----------------------------------------------
@@ -158,11 +154,11 @@ pmod1_cr1 <- robust(pmod1, cluster = study, adjust=TRUE)
 ########### Run model 2: phylogenetic multilevel model with sampling VCV (rho.hat=0.2) -------------------------------
 
 # get V matrix based on rho.hat 
-V <- vcalc(vi, cluster=study, obs=esid, data=dat, rho=0.2)
+V.0.2 <- vcalc(vi, cluster=study, obs=esid, data=dat, rho=0.2)
 
 ptm <- proc.time()
 pmod2 <- try(rma.mv(yi,
-                   V=V,
+                   V=V.0.2,
                    random = list(~ 1 | species,
                                  ~ 1 | species.phylo,
                                  ~ 1 | study,
@@ -183,11 +179,11 @@ pmod2_cr1 <- robust(pmod2, cluster = study, adjust=TRUE)
 ########### Run model 3: phylogenetic multilevel model with sampling VCV (rho.hat=0.5) -------------------------------
 
 # get V matrix based on rho.hat 
-V <- vcalc(vi, cluster=study, obs=esid, data=dat, rho=0.5)
+V.0.5 <- vcalc(vi, cluster=study, obs=esid, data=dat, rho=0.5)
 
 ptm <- proc.time()
 pmod3 <- try(rma.mv(yi,
-                    V=V,
+                    V=V.0.5,
                     random = list(~ 1 | species,
                                   ~ 1 | species.phylo,
                                   ~ 1 | study,
@@ -205,15 +201,14 @@ pmod3_cr1 <- robust(pmod3, cluster = study, adjust=TRUE)
 
 
 
-
 ########### Run model 4: phylogenetic multilevel model with sampling VCV (rho.hat=0.8) -------------------------------
 
 # get V matrix based on rho.hat 
-V <- vcalc(vi, cluster=study, obs=esid, data=dat, rho=0.8)
+V.0.8 <- vcalc(vi, cluster=study, obs=esid, data=dat, rho=0.8)
 
 ptm <- proc.time()
 pmod4 <- try(rma.mv(yi,
-                    V=V,
+                    V=V.0.8,
                     random = list(~ 1 | species,
                                   ~ 1 | species.phylo,
                                   ~ 1 | study,
@@ -227,7 +222,6 @@ pmod4_time <- (proc.time() - ptm)[3]
 
 pmod4_cr0 <- robust(pmod4, cluster = study, adjust=FALSE)
 pmod4_cr1 <- robust(pmod4, cluster = study, adjust=TRUE)
-
 
 
 
@@ -563,7 +557,11 @@ pmod4.cr1.b3.ci.lb <- pmod4_cr1$ci.lb[4]
 pmod4.cr1.b3.ci.ub <- pmod4_cr1$ci.ub[4]
 
 
-
+# extract AIC
+pmod1.aic <- AIC(pmod1)
+pmod2.aic <- AIC(pmod2)
+pmod3.aic <- AIC(pmod3)
+pmod4.aic <- AIC(pmod4)
 
 
 
@@ -580,6 +578,7 @@ res <- data.frame(name = rep(name, 12),
                   comp.time = rep(c(pmod1_time, pmod2_time, pmod3_time, pmod4_time), 3),
                   k.studies = rep(k.studies, 12),
                   k.species = rep(k.species, 12),
+                  b0 = rep(b0, 12),
                   b1 = rep(b1, 12),
                   b2 = rep(b2, 12),
                   b3 = rep(b3, 12),
@@ -587,7 +586,6 @@ res <- data.frame(name = rep(name, 12),
                   sigma2.p = rep(sigma2.p, 12),
                   sigma2.s = rep(sigma2.s, 12),
                   sigma2.u = rep(sigma2.u, 12),
-                  b0 = rep(b0, 12),
                   rho = rep(rho, 12),
                   b0_est = c(pmod1.est, pmod2.est, pmod3.est, pmod4.est, 
                              pmod1.cr0, pmod2.cr0, pmod3.cr0, pmod4.cr0,
@@ -654,9 +652,10 @@ res <- data.frame(name = rep(name, 12),
                                  pmod1.cr1.b3.ci.lb, pmod2.cr1.b3.ci.lb, pmod3.cr1.b3.ci.lb, pmod4.cr1.b3.ci.lb),
                   b3_ci_ub = c(pmod1.b3.ci.ub, pmod2.b3.ci.ub, pmod3.b3.ci.ub, pmod4.b3.ci.ub,
                                pmod1.cr0.b3.ci.ub, pmod2.cr0.b3.ci.ub, pmod3.cr0.b3.ci.ub, pmod4.cr0.b3.ci.ub,
-                               pmod1.cr1.b3.ci.ub, pmod2.cr1.b3.ci.ub, pmod3.cr1.b3.ci.ub, pmod4.cr1.b3.ci.ub)
+                               pmod1.cr1.b3.ci.ub, pmod2.cr1.b3.ci.ub, pmod3.cr1.b3.ci.ub, pmod4.cr1.b3.ci.ub),
+                  AIC = rep(c(pmod1.aic, pmod2.aic, pmod3.aic, pmod4.aic), 3)
 )
 
 
 # save the output according to the job array:
-save(list = "res", file = paste0("results/res_", job, ".RDATA"))
+save(list = "res", file = paste0("results/set1/res_", job, ".RDATA"))

@@ -5,6 +5,8 @@
 load("~/PhD/2_MetaRVE/results/sims/all_results_study2.RDATA") ### change this to OSF or repo where i'll store large files
 results <- combined_dat
 
+# expect to have 7,680,000 rows... (480k x 15 models)
+
 
 ###
 # load librairies
@@ -59,9 +61,9 @@ sample_var <- results |>
 # add labels for plots
 results$rho_lab <- factor(results$rho, 
                           labels=c(
-                            `0.2`=parse(text=TeX("$\\rho=0.2$")),
-                            `0.5`=parse(text=TeX("$\\rho=0.5$")),
-                            `0.8`=parse(text=TeX("$\\rho=0.8$"))
+                            `0.2`=parse(text=TeX("$\\phi=0.2$")),
+                            `0.5`=parse(text=TeX("$\\phi=0.5$")),
+                            `0.8`=parse(text=TeX("$\\phi=0.8$"))
                           ))
 
 results$k.studies_lab <- factor(results$k.studies, 
@@ -71,9 +73,30 @@ results$k.studies_lab <- factor(results$k.studies,
                                 ))
 
 
-# remove ML-VCV-0.5 model
+########
+# derive standard error of mu estimate from CI
+results$mu_se <- (results$mu_ci_ub - results$mu_ci_lb) / (2 * qt(0.975, results$k.studies - 1))
+
+
+########
+# derive confidence interval with approx. df Satterwaithe method (3/((1/k.studies) + (1/k.species) + (1/k.species)))
+# alternative: m-l-1 (m refers to the number of upper-level units and l refers to the number of contextual variables)
+results <- results |>
+  mutate(df.hm = (3/(1/k.studies + 1/k.species + 1/k.species))) 
+
+# obtain confidence interval and coverage rates
+results$mu_ci_ub_df.hm <- results$mu_est + (results$mu_se * qt(0.975, results$df.hm - 1))
+results$mu_ci_lb_df.hm <- results$mu_est - (results$mu_se * qt(0.975, results$df.hm - 1))
+results$mu_ci_width_df.hm <- results$mu_ci_ub_df.hm - results$mu_ci_lb_df.hm
+results$mu_cov_df.hm <- (results$mu_ci_lb_df.hm <= results$mu) & (results$mu_ci_ub_df.hm >= results$mu)
+
+
+
+
+# remove ML-VCV-0.5 model --- expect now to have 5,760,000 rows... (480k x 12 models)
 results <- results |> 
   filter(!model_type %in% c("ML-VCV-0.5"))
+
 
 # set up colors
 col5mods <- c("#3CB371", "#FFD966", "#FFC845", "#FFB72A")
@@ -94,8 +117,9 @@ res.a <- results |>
 
 # derive coverage for this subset across all varying conditions
 cov.a <- res.a |>
-  group_by(model_type, rho, sigma2.s, sigma2.u, sigma2.p, sigma2.n, k.studies) |> #here look at model_type as there is no CRVE methods
+  group_by(model_type, rho,  rho_lab, sigma2.s, sigma2.u, sigma2.p, sigma2.n, k.studies) |> #here look at model_type as there is no CRVE methods
   summarise(cov_prop = mean(mu_cov, na.rm = TRUE))
+
 
 
 ####################
@@ -114,7 +138,6 @@ mu_est_plot.a <-
   facet_wrap(~rho_lab, labeller=label_parsed)+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("output/study2/Fig1/mu_est_plot.png", plot = mu_est_plot.a, width = 10, height = 6)
 
 
 
@@ -135,7 +158,6 @@ mu_mse_plot.a <-
   facet_wrap(~rho_lab, labeller=label_parsed)+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("output/study2/Fig1/mu_mse_all.png", plot = mu_mse_plot.a, width = 10, height = 6)
 
 
 
@@ -154,7 +176,6 @@ mu_rmse_plot.a <-
   facet_wrap(~rho_lab, labeller=label_parsed)+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("output/study2/Fig1/mu_rmse_all.png", plot = mu_rmse_plot.a, width = 10, height = 6)
 
 
 
@@ -172,10 +193,23 @@ cov_plot.a <-
   labs(title="",x="", y = TeX("Coverage rate of $\\hat{\\mu}$"))+
   geom_boxplot(width=0.4)+
   geom_hline(yintercept=0.95, colour="darkgray", linewidth=0.6)+ 
-  facet_wrap(~rho, labeller=label_parsed)+
+  facet_wrap(k.studies~rho_lab, labeller=label_parsed)+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("output/study2/Fig1/coverage_all.png", plot = cov_plot.a, width = 10, height = 6)
+
+
+cov_plot.hm <-
+  ggplot(cov.hm, aes(x=factor(model_type), y=cov_prop, color=model_type, fill=model_type)) + 
+  stat_halfeye() +
+  scale_color_manual(values=col5mods, guide="none")+
+  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
+  labs(title="",x="", y = TeX("Coverage rate of $\\hat{\\mu}$"))+
+  geom_boxplot(width=0.4)+
+  geom_hline(yintercept=0.95, colour="darkgray", linewidth=0.6)+ 
+  facet_wrap(~rho_lab, labeller=label_parsed)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
 
 
 
@@ -193,7 +227,6 @@ ci_plot.a <-
   facet_wrap(~rho_lab, labeller=label_parsed)+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("output/study2/Fig1/ci_width_all.png", plot = ci_plot.a, width = 10, height = 6)
 
 
 
@@ -201,7 +234,7 @@ ggsave("output/study2/Fig1/ci_width_all.png", plot = ci_plot.a, width = 10, heig
 figure1 <- wrap_plots(mu_est_plot.a, mu_mse_plot.a, cov_plot.a, ci_plot.a) +
   plot_annotation(tag_levels='A')
 
-ggsave("output/study2/SFig1/Sfigure1.png", plot = figure1, width = 10, height = 9)
+ggsave("output/study2/SFig/Sfigure5_PML_means.png", plot = figure1, width = 12, height = 11)
 
 
 
@@ -235,7 +268,6 @@ cov_plot.b <-
   facet_wrap(~factor(CR_method), ncol=1)+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("output/study2/Figures/coverage.png", plot = cov_plot.b, width = 4, height = 10)
 
 
 
@@ -254,63 +286,13 @@ ci_plot.b <-
   facet_wrap(~factor(CR_method), ncol=1)+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("output/study2/Figures/ci_width.png", plot = ci_plot.b, width = 4, height = 10)
 
 
 ### Combine into Figure 4
 figure4 <- cov_plot.b + ci_plot.b +
   plot_annotation(tag_levels='A')
 
-ggsave("output/study2/Figures/figure4.png", plot = figure4, width = 9, height = 10)
-
-
-
-
-### Supplementary figure: ML-VCV working models per CRVE method
-
-####################
-# (1) Coverage 
-####################
-
-cov_plot.b <-
-  cov.b |> 
-  ggplot(aes(x=factor(rho), y=cov_prop, color=model_type, fill=model_type)) + 
-  #stat_halfeye() +
-  scale_color_manual(values=col6mods,4, guide="none")+
-  scale_fill_manual(values=alpha(col6mods, 0.4), guide="none") +
-  labs(title=TeX("Coverage rate of $\\hat{\\mu}$"), x="", y = "")+
-  geom_boxplot(width=0.4)+
-  geom_hline(yintercept=0.95, colour="darkgray", linewidth=0.6)+ 
-  facet_wrap(~factor(CR_method), ncol=1, scales="free")+
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-
-####################
-# (2) Confidence interval widths
-####################
-
-ci_plot.b <-
-  results |> 
-  ggplot(aes(x=factor(rho), y=mu_ci_width, color=model_type, fill=model_type)) + 
-  #stat_halfeye() +
-  scale_color_manual(values=col6mods, name="model")+
-  scale_fill_manual(values=alpha(col6mods, 0.4), name="model") +
-  labs(title=TeX("Confidence interval width of $\\hat{\\mu}$"), x="", y ="")+
-  geom_boxplot(width=0.4)+
-  facet_wrap(~factor(CR_method), ncol=1, scales="free")+
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-
-### Combine into Figure 2
-Sfig <- wrap_plots(cov_plot.b, ci_plot.b) +
-  plot_annotation(tag_levels='A')
-
-ggsave("output/study1/Fig2/Sfigure1_CRVE.png", plot = Sfig, width = 10, height = 12)
-
-
-
+ggsave("output/study2/Figures/figure4.png", plot = figure4, width = 10, height = 12)
 
 
 
@@ -367,7 +349,7 @@ sigma2.u_plot_est_0.05 <-
 
 sigma2.u_plot_est_0.3 <-
   res.c |> 
-  filter(sigma2.u == 0.3) |>  
+  filter(sigma2.p == 0.3 & sigma2.n == 0.3 & sigma2.s == 0.3 & sigma2.u == 0.3) |>  
   ggplot(aes(x=factor(model_type), y=sigma.u_est, color=model_type, fill=model_type)) + 
   stat_halfeye() +
   scale_color_manual(values=col5mods, guide="none")+
@@ -399,7 +381,8 @@ sigma2.s_plot_est_0.05 <-
 
 sigma2.s_plot_est_0.3 <-
   res.c |> 
-  filter(!model_type %in% c("FE", "RE") & sigma2.s == 0.3) |>  
+  filter(!model_type %in% c("FE", "RE") & sigma2.p == 0.3 & 
+           sigma2.n == 0.3 & sigma2.s == 0.3 & sigma2.u == 0.3) |>  
   ggplot(aes(x=factor(model_type), y=sigma.s_est, color=model_type, fill=model_type)) + 
   stat_halfeye() +
   scale_color_manual(values=col5mods, guide="none")+
@@ -434,7 +417,8 @@ sigma2.n_plot_est_0.05 <-
 
 sigma2.n_plot_est_0.3 <-
   res.c |> 
-  filter(!model_type %in% c("FE", "RE") & sigma2.n == 0.3) |>  
+  filter(!model_type %in% c("FE", "RE")  & sigma2.p == 0.3 & 
+           sigma2.n == 0.3 & sigma2.s == 0.3 & sigma2.u == 0.3) |>  
   ggplot(aes(x=factor(model_type), y=sigma.s_est, color=model_type, fill=model_type)) + 
   stat_halfeye() +
   scale_color_manual(values=col5mods, guide="none")+
@@ -453,7 +437,7 @@ sigma2.n_plot_est_0.3 <-
 ## Among species phylogeny (p)
 sigma2.p_plot_est_0.05 <-
   res.c |> 
-  filter(!model_type %in% c("FE", "RE") & sigma2.p == 0.05) |>  
+  filter(!model_type %in% c("FE", "RE") & sigma2.p == 0.05 & sigma2.n == 0.05) |>  
   ggplot(aes(x=factor(model_type), y=sigma.n_est, color=model_type, fill=model_type)) + 
   stat_halfeye() +
   scale_color_manual(values=col5mods, guide="none")+
@@ -468,7 +452,8 @@ sigma2.p_plot_est_0.05 <-
 
 sigma2.p_plot_est_0.3 <-
   res.c |> 
-  filter(!model_type %in% c("FE", "RE") & sigma2.p == 0.3) |>  
+  filter(!model_type %in% c("FE", "RE") & sigma2.p == 0.3 & 
+           sigma2.n == 0.3 & sigma2.s == 0.3 & sigma2.u == 0.3) |>  
   ggplot(aes(x=factor(model_type), y=sigma.s_est, color=model_type, fill=model_type)) + 
   stat_halfeye() +
   scale_color_manual(values=col5mods, guide="none")+
@@ -491,17 +476,17 @@ figure5 <- sigma2.u_plot_est_0.3 /
           sigma2.p_plot_est_0.3 +
   plot_annotation(tag_levels='A')
 
-ggsave("output/study2/Figures/figure5.png", plot = figure5, width = 8, height = 12.5)
+ggsave("output/study2/Figures/figure5.png", plot = figure5, width = 8, height = 12.8)
 
 
-### supplementary SFigure 7
-Sfigure7 <- sigma2.u_plot_est_0.05 / 
+### supplementary SFigure
+Sfigure6 <- sigma2.u_plot_est_0.05 / 
   sigma2.s_plot_est_0.05 / 
   sigma2.n_plot_est_0.05 / 
   sigma2.p_plot_est_0.05 +
   plot_annotation(tag_levels='A')
 
-ggsave("output/study2/SFig/Sfigure7_sigma2.png", plot = Sfigure7, width = 8, height = 12.5)
+ggsave("output/study2/SFig/Sfigure6_sigma2.png", plot = Sfigure6, width = 8, height = 12.5)
 
 
 
@@ -758,25 +743,25 @@ sigma2.p_plot_mse_0.3 <-
 
 
 
-### supplementary SFigure 8
-Sfigure8 <- sigma2.u_plot_mse_0.05 / 
+### supplementary SFigure 7
+Sfigure7 <- sigma2.u_plot_mse_0.05 / 
   sigma2.s_plot_mse_0.05 / 
   sigma2.n_plot_mse_0.05 / 
   sigma2.p_plot_mse_0.05 +
   plot_annotation(tag_levels='A')
 
-ggsave("output/study2/SFig/Sfigure8_sigma2_mse.png", plot = Sfigure8, width = 8, height = 12.5)
+ggsave("output/study2/SFig/Sfigure7_sigma2_mse.png", plot = Sfigure7, width = 8, height = 12.5)
 
 
 
-### supplementary SFigure 9
-Sfigure9 <- sigma2.u_plot_mse_0.3 / 
+### supplementary SFigure 8
+Sfigure8 <- sigma2.u_plot_mse_0.3 / 
   sigma2.s_plot_mse_0.3 / 
   sigma2.n_plot_mse_0.3 / 
   sigma2.p_plot_mse_0.3 +
   plot_annotation(tag_levels='A')
 
-ggsave("output/study2/SFig/Sfigure9_sigma2_mse.png", plot = Sfigure9, width = 8, height = 12.5)
+ggsave("output/study2/SFig/Sfigure8_sigma2_mse.png", plot = Sfigure8, width = 8, height = 12.5)
 
 
 
@@ -820,13 +805,13 @@ sigma2.T_plot_mse_all
 
 
 
-### supplementary SFigure 10
-Sfigure10 <- sigma2.T_plot_bias_all / 
+### supplementary SFigure 9
+Sfigure9 <- sigma2.T_plot_bias_all / 
              sigma2.T_plot_mse_all + 
         plot_annotation(tag_levels='A') 
 
 
-ggsave("output/study2/SFig/Sfigure10_sigma2_total.png", plot = Sfigure10, width = 9, height = 9.5)
+ggsave("output/study2/SFig/Sfigure9_sigma2_total.png", plot = Sfigure9, width = 9, height = 9.5)
 
 
 

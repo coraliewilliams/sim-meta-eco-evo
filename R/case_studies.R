@@ -1,0 +1,233 @@
+library(pacman)
+p_load(readxl, tidyverse, metafor, ape, dplyr,
+       here, clubSandwich, corpcor, xtable)
+
+
+#####################################################
+# Case study 1: meta-analysis on plant coexistence
+#####################################################
+
+# Crawford, K. M., Bauer, J. T., Comita, L. S., Eppinga, M. B., Johnson, D. J., Mangan, S. A., Queenborough, S. A., Strand, A. E., Suding, K. N., Umbanhowar, J., & Bever, J. D. (2019). When and where plant-soil feedback may promote plant coexistence: a meta-analysis. Ecology letters, 22(8), 1274–1284. https://doi.org/10.1111/ele.13278
+
+## set-up dataset
+# link to download data file: "https://figshare.com/ndownloader/files/14874749"
+dat <- read_excel("data/case_studies/Supplementary Table 1.xlsx", sheet="Data")
+dat <- dat |> filter(`Mycorrhizal status`=="different")
+
+# corr values to test
+cor_values <- seq(0, 0.9, 0.1)
+
+# set up sampling error variances and effect size id
+vi <- dat$`Variance(rrIs)`
+es.id <- dat$`Pairwise comparison`
+
+# empty dataframe to store results
+results <- data.frame(rho = numeric(), beta = numeric(),
+                      se = numeric(), se.cr1 = numeric(), 
+                      pval = numeric(), pval.cr1 = numeric(),
+                      s2.study = numeric(), s2.es = numeric(),
+                      s2.phylogeny = numeric(), s2.species = numeric(),
+                      loglik = numeric())
+
+
+for (rho in cor_values) {
+  
+  # get VCV matrix 
+  V <- vcalc(vi,
+             cluster=Study,
+             obs=es.id,
+             data=dat,
+             rho=rho)
+  
+  # fit the multilevel meta-analysis model with this VCV
+  model <- rma.mv(yi = rrIs, 
+                  V = V,
+                  random = list(~1 | Study,
+                                ~1 | es.id),
+                  data = dat,
+                  test = "t",
+                  dfs = "contain",
+                  method = "REML")
+  
+  # get CR2 estimates
+  mod.cr2 <- coef_test(model, vcov="CR2", cluster = dat$Study) ## default test is Satterthwaite
+  
+  # store model output
+  results <- rbind(results, data.frame(rho = rho,
+                                       beta = round(model$beta[1], 2),
+                                       se = round(model$se[1], 3),
+                                       se.cr2 = round(mod.cr2$SE, 3),
+                                       pval = round(model$pval[1], 4),
+                                       pval.cr2 = round(mod.cr2$p_Satt, 4),
+                                       s2.es = round(model$sigma2[2], 3),
+                                       s2.study = round(model$sigma2[1], 3),
+                                       loglik = round(logLik(model), 3)))
+  
+}
+
+results
+
+
+
+
+
+#####################################################
+# Case study 2: Phylogenetic meta-analysis
+#####################################################
+
+# Horváth, G., Garamszegi, L. Z., & Herczeg, G. (2023). Phylogenetic meta-analysis reveals system-specific behavioural type–behavioural predictability correlations. Royal Society Open Science, 10(9). https://doi.org/10.1098/rsos.230303
+
+
+library(ape); library(Matrix);library(rotl); library(rmeta); library(rncl);
+library(Hmisc); library(mice); library(lattice); library(HDInterval);
+library(meta); library(readxl)
+
+### code from supplementary HTML file
+# Set up meta-analysis data
+xdata <- read_excel("data/case_studies/Metadata_ALL_NEWER.xlsx")
+xdata$N_OBS<-as.numeric(xdata$N_OBS)
+xdata$N_ID<-as.numeric(xdata$N_ID)
+xdata$N_rep_mean<-as.numeric(xdata$N_rep_mean)
+xdata$ES.ID<-as.factor(xdata$ES.ID)
+xdata$scientific.name <- tolower(as.factor(xdata$scientific.name))
+xdata$species<-as.factor(xdata$species)
+xdata$taxa <- as.factor(xdata$taxa)
+xdata$study <- as.factor(xdata$study)
+xdata$behaviour <-as.factor(xdata$behaviour)
+xdata$environment <-as.factor(xdata$environment)
+xdata$measures.use<-as.factor(xdata$measures.use)
+xdata$age <- as.factor(xdata$age)
+xdata$sex <- as.factor(xdata$sex)
+xdata$temporal.context <- as.factor(xdata$temporal.context)
+
+## transform correlation coefficients to Fisher’s normalized correlation coefficients (Zr)
+Zr.corr<-function(r){
+  Zr<-0.5*log((1+r)/(1-r))
+}
+# get Zr
+xdata$yi.z <- Zr.corr(xdata$Corr)
+# multiply these Zr values by -1 to make positive correlations equate risk-prone animals being more variable
+xdata$yi.z[xdata$measures.use == 'latency']<-xdata$yi.z[xdata$measures.use == 'latency']*-1
+# get sampling variances
+vi<-xdata$N_rep_mean/(2*(xdata$N_ID-2)*(xdata$N_rep_mean-1))
+xdata<-data.frame(xdata,vi)
+
+
+##### Phylogenetic tree
+species <- unique(xdata$scientific.name)
+species <- as.data.frame(species)
+species[,1] <- as.character(species[,1])
+
+taxa <- tnrs_match_names(unique(xdata$scientific.name), context="Animals")
+taxon_map <- structure(taxa$search_string, names=taxa$unique_name)
+tr<-tol_induced_subtree(ott_id(taxa)[is_in_tree(ott_id(taxa))])
+tr <- readRDS("data/case_studies/phylotree.rds")
+
+# clean up tip labels
+otl_tips <- strip_ott_ids(tr$tip.label, remove_underscores=TRUE)
+tr$tip.label <- taxon_map[ otl_tips ]
+any(duplicated(tr$node.label))
+tr$node.label <- NULL
+xdata <- xdata[xdata$scientific.name %in% tr$tip.label, ]
+
+# create VCV phylogenetic matrix
+xdata$animal <- xdata$scientific.name
+phylo_matrix <- vcv(compute.brlen(tr, corr = T))
+
+
+## sensitivity analysis
+# corr values to test
+cor_values <- seq(0, 0.9, 0.1)
+
+# empty dataframe to store results
+results <- data.frame(rho = numeric(), beta = numeric(),
+                      se = numeric(), se.cr1 = numeric(), 
+                      pval = numeric(), pval.cr1 = numeric(),
+                      s2.study = numeric(), s2.es = numeric(),
+                      s2.phylogeny = numeric(), s2.species = numeric(),
+                      loglik = numeric())
+
+
+for (rho in cor_values) {
+  
+  # get VCV matrix 
+  V <- vcalc(vi,
+             cluster=study,
+             obs=ES.ID,
+             data=xdata,
+             rho=rho)
+  
+  # fit the multilevel meta-analysis model with this VCV
+  model <- rma.mv(yi = yi.z, 
+                  V = V,
+                  random = list(~1 | study,
+                                ~1 | ES.ID,
+                                ~1 | animal,   #phylogenetic component
+                                ~1 | species), #non phylogenetic component
+                  data = xdata,
+                  R = list(animal = phylo_matrix),
+                  test = "t",
+                  dfs = "contain",
+                  method = "REML")
+  
+  # get CR1 estimates
+  mod.cr1 <- robust(model, cluster = study, adjust=TRUE)
+  
+  # store model output
+  results <- rbind(results, data.frame(rho = rho,
+                                       beta = round(model$beta[1], 2),
+                                       se = round(model$se[1], 3),
+                                       se.cr1 = round(mod.cr1$se, 3),
+                                       pval = round(model$pval[1], 4),
+                                       pval.cr1 = round(mod.cr1$pval, 4),
+                                       s2.es = round(model$sigma2[2], 3),
+                                       s2.study = round(model$sigma2[1], 3),
+                                       s2.phylogeny = round(model$sigma2[3], 3),
+                                       s2.species = round(model$sigma2[4], 3),
+                                       loglik = round(logLik(model), 3)))
+  
+}
+
+results
+
+
+
+
+#####################################################
+# Function to select sampling VCV matrix 
+#####################################################
+
+fit_models_rho <- function(rho_vec, vi, num_re, dat, CR_method = NULL) {
+  
+  results <- data.frame()
+  
+  for (rho in rho_vec) {
+    V <- vcalc(vi, cluster = dat$Study, obs = dat$es.id, data = dat, rho = rho)
+    
+    rand_eff <- list(~1 | Study, ~1 | es.id)
+    if (num_re > 2) rand_eff <- append(rand_eff, list(~1 | dat$animal, ~1 | dat$species))
+    
+    model <- rma.mv(yi = dat$rrIs, V = V, random = rand_eff, data = dat,
+                    R = if (num_re > 2) list(animal = phylo_matrix) else NULL,
+                    test = "t", dfs = "contain", method = "REML")
+    
+    se_cr <- pval_cr <- NA
+    if (!is.null(CR_method)) {
+      cr_mod <- if (CR_method == "CR2") coef_test(model, vcov = CR_method, cluster = dat$Study)
+      else robust(model, cluster = dat$Study, adjust = TRUE)
+      se_cr <- round(cr_mod$SE, 3)
+      pval_cr <- round(cr_mod$pval, 4)
+    }
+    
+    row <- data.frame(rho = rho, beta = round(model$beta[1], 2),
+                      se = round(model$se[1], 3), se_cr = se_cr,
+                      pval = round(model$pval[1], 4), pval_cr = pval_cr,
+                      loglik = round(logLik(model), 3))
+    
+    for (i in seq_along(model$sigma2)) row[paste0("s2.", i)] <- round(model$sigma2[i], 3)
+    
+    results <- rbind(results, row)
+  }
+  return(results)
+}
+

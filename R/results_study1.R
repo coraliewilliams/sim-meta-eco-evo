@@ -2,6 +2,8 @@
 # Plot results
 ################################################################################
 
+
+# expect to have 2880000 rows... (360k x 24 models) / 3 true rho values
 load("~/PhD/2_MetaRVE/results/sims/all_results_study1.RDATA") ### change this to OSF or repo where i'll store large files
 
 
@@ -10,7 +12,7 @@ load("~/PhD/2_MetaRVE/results/sims/all_results_study1.RDATA") ### change this to
 library(pacman)
 p_load(tidyverse, ggplot2, broom, here,
        cowplot, ggdist, patchwork,
-       scales, latex2exp)
+       scales, latex2exp, xtable)
 
 ###
 # reorder factor levels for model_type and model
@@ -46,18 +48,13 @@ results <- results |>
   mutate(mu_rmse = sqrt(mean((mu_est - mu)^2)))
 
 
-# derive sample variance of mu estimate
-sample_var <- results |> 
-  group_by(model, model_type, CR_method) |>
-  summarise(S2 = sum((mu_est - mean(mu_est))^2) / (length(mu_est) - 1)) |> 
-  ungroup()
 
 # add labels for plots
 results$rho_lab <- factor(results$rho, 
                       labels=c(
-                            `0.2`=parse(text=TeX("$\\rho=0.2$")),
-                            `0.5`=parse(text=TeX("$\\rho=0.5$")),
-                            `0.8`=parse(text=TeX("$\\rho=0.8$"))
+                            `0.2`=parse(text=TeX("$\\phi=0.2$")),
+                            `0.5`=parse(text=TeX("$\\phi=0.5$")),
+                            `0.8`=parse(text=TeX("$\\phi=0.8$"))
                             ))
 
 results$k.studies_lab <- factor(results$k.studies, 
@@ -67,7 +64,40 @@ results$k.studies_lab <- factor(results$k.studies,
                     ))
 
 
-# set up colors
+# derive standard error of mu estimate from CI
+results$mu_se <- (results$mu_ci_ub - results$mu_ci_lb) / (2 * qt(0.975, results$k.studies - 1))
+
+
+######## For results for suppl. material
+# derive CI widths with other degrees of freedom ('residual' = k - 1)
+results$mu_ci_ub_df_r <- results$mu_est + (results$mu_se*qt(0.975, results$k - 1))
+results$mu_ci_lb_df_r <- results$mu_est - (results$mu_se * qt(0.975, results$k - 1))
+results$mu_ci_width_r <- results$mu_ci_ub_df_r - results$mu_ci_lb_df_r
+results$mu_cov_r <- (results$mu_ci_lb_df_r <= results$mu) & (results$mu_ci_ub_df_r >= results$mu)
+
+# derive CI widths with Z-test, Wald type (instead t-test)
+results$mu_ci_ub_z <- results$mu_est + (results$mu_se * qnorm(0.975))
+results$mu_ci_lb_z <- results$mu_est - (results$mu_se * qnorm(0.975))
+results$mu_ci_width_z <- results$mu_ci_ub_z - results$mu_ci_lb_z
+results$mu_cov_z <- (results$mu_ci_lb_z <= results$mu) & (results$mu_ci_ub_z >= results$mu)
+
+
+## for type I error rates
+# for z-test (wald CI)
+results$z_stat <- (results$mu_est - results$mu) / results$mu_se
+results$p_value_z <- 2 * (1 - pnorm(abs(results$z_stat)))
+
+# for t-test (t CI)
+results$t_stat <- (results$mu_est - results$mu) / results$mu_se
+results$p_value_t <- 2 * (1 - pt(abs(results$t_stat), results$k.studies - 1))
+results$p_value_t_df <- 2 * (1 - pt(abs(results$t_stat), results$k - 1))
+
+# derive Type I error rates
+results$mu_typeI_z <- results$p_value_z < 0.05
+results$mu_typeI_t <- results$p_value_t < 0.05
+results$mu_typeI_t_df <- results$p_value_t_df < 0.05
+
+###### set up colors
 col6mods <- c("#7297C7", "#FECA91","#A5D9A5","#D4A5E8","#C39BD6", "#A087CA")
   
 
@@ -88,6 +118,8 @@ res.a <- results |>
 cov.a <- res.a |>
   group_by(model_type, rho, rho_lab, sigma2.s, sigma2.u, k.studies) |> #here look at model_type as there is no CRVE methods
   summarise(cov_prop = mean(mu_cov, na.rm = TRUE))
+
+
 
 
 ####################
@@ -150,8 +182,6 @@ mu_rmse_plot.a <-
 
 
 
-
-
 ####################
 # (4) Coverage 
 ####################
@@ -199,6 +229,7 @@ ggsave("output/study1/Fig1/figure1.png", plot = figure1, width = 11, height = 8)
 
 
 
+
 ################################################################################
 # ------------------------ b. CRVE methods ----------------------------
 ################################################################################
@@ -212,75 +243,26 @@ cov.b <- results |>
   summarise(cov_prop = mean(mu_cov, na.rm = TRUE))
 
 
-#### Main text figure (only VCV-0.5)
 
 ####################
 # (1) Coverage 
 ####################
 
+
 cov_plot.b <-
   cov.b |> 
-  filter(!model_type %in% c("ML-VCV-0.2", "ML-VCV-0.8")) |> 
   ggplot(aes(x=factor(rho), y=cov_prop, color=model_type, fill=model_type)) + 
-  #stat_halfeye() +
   scale_color_manual(values=col6mods,4, guide="none")+
   scale_fill_manual(values=alpha(col6mods, 0.4), guide="none") +
   labs(title=TeX("Coverage rate of $\\hat{\\mu}$"), x="", y = "")+
   geom_boxplot(width=0.4)+
   geom_hline(yintercept=0.95, colour="darkgray", linewidth=0.6)+ 
-  facet_wrap(~factor(CR_method), ncol=1, scales="free")+
+  facet_wrap(~factor(CR_method), ncol=1, scales="free_y")+
+  geom_blank(data = subset(cov.b, CR_method %in% c("CR0", "CR1", "CR2")), aes(y = 0.92)) +
+  geom_blank(data = subset(cov.b, CR_method %in% c("CR0", "CR1", "CR2")), aes(y = 0.97)) +
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("output/study1/Fig2/coverage.png", plot = cov_plot.b, width = 4, height = 12)
 
-
-
-####################
-# (2) Confidence interval widths
-####################
-
-ci_plot.b <-
-  results |> 
-  filter(!model_type %in% c("ML-VCV-0.2", "ML-VCV-0.8")) |> 
-  ggplot(aes(x=factor(rho), y=mu_ci_width, color=model_type, fill=model_type)) + 
-  #stat_halfeye() +
-  scale_color_manual(values=col6mods, name="model")+
-  scale_fill_manual(values=alpha(col6mods, 0.4), name="model") +
-  labs(title=TeX("Confidence interval width of $\\hat{\\mu}$"), x="", y ="")+
-  geom_boxplot(width=0.4)+
-  facet_wrap(~factor(CR_method), ncol=1, scales="free")+
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("output/study1/Fig2/ci_width.png", plot = ci_plot.b, width = 4, height = 12)
-
-
-### Combine into Figure 2
-figure2 <- wrap_plots(cov_plot.b, ci_plot.b) +
-  plot_annotation(tag_levels='A')
-
-ggsave("output/study1/Fig2/figure2.png", plot = figure2, width = 9, height = 11)
-
-
-
-
-### Supplementary figure: ML-VCV working models per CRVE method
-
-####################
-# (1) Coverage 
-####################
-
-cov_plot.b <-
-  cov.b |> 
-  ggplot(aes(x=factor(rho), y=cov_prop, color=model_type, fill=model_type)) + 
-  #stat_halfeye() +
-  scale_color_manual(values=col6mods,4, guide="none")+
-  scale_fill_manual(values=alpha(col6mods, 0.4), guide="none") +
-  labs(title=TeX("Coverage rate of $\\hat{\\mu}$"), x="", y = "")+
-  geom_boxplot(width=0.4)+
-  geom_hline(yintercept=0.95, colour="darkgray", linewidth=0.6)+ 
-  facet_wrap(~factor(CR_method), ncol=1, scales="free")+
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
 ####################
@@ -295,16 +277,18 @@ ci_plot.b <-
   scale_fill_manual(values=alpha(col6mods, 0.4), name="model") +
   labs(title=TeX("Confidence interval width of $\\hat{\\mu}$"), x="", y ="")+
   geom_boxplot(width=0.4)+
-  facet_wrap(~factor(CR_method), ncol=1, scales="free")+
+  facet_wrap(~factor(CR_method), ncol=1, scales="free_y")+
+  geom_blank(data = subset(cov.b, CR_method %in% c("none", "CR0", "CR1")), aes(y = 0)) +
+  geom_blank(data = subset(cov.b, CR_method %in% c("none", "CR0", "CR1")), aes(y = 3)) +
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
 ### Combine into Figure 2
-Sfig <- wrap_plots(cov_plot.b, ci_plot.b) +
-  plot_annotation(tag_levels='A')
+fig2 <- cov_plot.b | ci_plot.b + plot_annotation(tag_levels='A')
 
-ggsave("output/study1/Fig2/Sfigure1_CRVE.png", plot = Sfig, width = 10, height = 12)
+ggsave("output/study1/Fig2/Figure2.png", plot = fig2, width = 10, height = 12)
+
 
 
 
@@ -345,11 +329,11 @@ sigma.mean <- res.c |>
 ## Estimate
 sigma2.u_plot_est_0.05 <-
   res.c |> 
-  filter(sigma2.u == 0.05) |>  
+  filter(!model_type %in% c("FE") & sigma2.u == 0.05) |>  
   ggplot(aes(x=factor(model_type), y=sigma.u_est, color=model_type, fill=model_type)) + 
   stat_halfeye() +
-  scale_color_manual(values=col6mods, guide="none")+
-  scale_fill_manual(values=alpha(col6mods, 0.4), guide="none") +
+  scale_color_manual(values=col6mods[2:6], guide="none")+
+  scale_fill_manual(values=alpha(col6mods[2:6], 0.4), guide="none") +
   labs(title = TeX("$\\sigma^2_u = 0.05$"), x = "", y = TeX("$\\hat{\\sigma}^2_u$"))+
   geom_boxplot(width=0.4)+
   geom_hline(aes(yintercept = sigma2.u), colour="darkgray")+ 
@@ -360,11 +344,11 @@ sigma2.u_plot_est_0.05 <-
 
 sigma2.u_plot_est_0.3 <-
   res.c |> 
-  filter(sigma2.u == 0.3) |>  
+  filter(!model_type %in% c("FE") & sigma2.u == 0.3) |>  
   ggplot(aes(x=factor(model_type), y=sigma.u_est, color=model_type, fill=model_type)) + 
   stat_halfeye() +
-  scale_color_manual(values=col6mods, guide="none")+
-  scale_fill_manual(values=alpha(col6mods, 0.4), guide="none") +
+  scale_color_manual(values=col6mods[2:6], guide="none")+
+  scale_fill_manual(values=alpha(col6mods[2:6], 0.4), guide="none") +
   labs(title = TeX("$\\sigma^2_u = 0.3$"), x = "", y = TeX("$\\hat{\\sigma}^2_u$"))+
   geom_boxplot(width=0.4)+
   geom_hline(aes(yintercept = sigma2.u), colour="darkgray")+ 
@@ -376,11 +360,11 @@ sigma2.u_plot_est_0.3 <-
 ### Bias 
 sigma2.u_plot_bias_0.05 <-
   res.c |> 
-  filter(sigma2.u == 0.05) |>  
+  filter(!model_type %in% c("FE") & sigma2.u == 0.05) |>  
   ggplot(aes(x=factor(model_type), y=sigma2.u_bias, color=model_type, fill=model_type)) + 
   stat_halfeye() +
-  scale_color_manual(values=col6mods, guide="none")+
-  scale_fill_manual(values=alpha(col6mods, 0.4), guide="none") +
+  scale_color_manual(values=col6mods[2:6], guide="none")+
+  scale_fill_manual(values=alpha(col6mods[2:6], 0.4), guide="none") +
   labs(title = TeX("$\\sigma^2_u = 0.05$"), x = "", y = TeX("$\\hat{\\sigma}^2_u$ bias"))+
   geom_boxplot(width=0.4)+
   geom_hline(aes(yintercept = 0), colour="darkgray")+ 
@@ -391,11 +375,11 @@ sigma2.u_plot_bias_0.05 <-
 
 sigma2.u_plot_bias_0.3 <-
   res.c |> 
-  filter(sigma2.u == 0.3) |>  
+  filter(!model_type %in% c("FE") & sigma2.u == 0.3) |>  
   ggplot(aes(x=factor(model_type), y=sigma2.u_bias, color=model_type, fill=model_type)) + 
   stat_halfeye() +
-  scale_color_manual(values=col6mods, guide="none")+
-  scale_fill_manual(values=alpha(col6mods, 0.4), guide="none") +
+  scale_color_manual(values=col6mods[2:6], guide="none")+
+  scale_fill_manual(values=alpha(col6mods[2:6], 0.4), guide="none") +
   labs(title = TeX("$\\sigma^2_u = 0.3$"), x = "", y = TeX("$\\hat{\\sigma}^2_u$ bias"))+
   geom_boxplot(width=0.4)+
   geom_hline(aes(yintercept = 0), colour="darkgray")+ 
@@ -407,11 +391,11 @@ sigma2.u_plot_bias_0.3 <-
 ### MSE
 sigma2.u_plot_mse_0.05 <-
   res.c |> 
-  filter(sigma2.u == 0.05) |>  
+  filter(!model_type %in% c("FE") & sigma2.u == 0.05) |>  
   ggplot(aes(x=factor(model_type), y=sigma.u_mse, color=model_type, fill=model_type)) + 
   stat_halfeye() +
-  scale_color_manual(values=col6mods, guide="none")+
-  scale_fill_manual(values=alpha(col6mods, 0.4), guide="none") +
+  scale_color_manual(values=col6mods[2:6], guide="none")+
+  scale_fill_manual(values=alpha(col6mods[2:6], 0.4), guide="none") +
   labs(title = TeX("$\\sigma^2_u$=0.05"), 
        x = "", 
        y = TeX("$\\hat{\\sigma}^2_u$ MSE"))+
@@ -423,11 +407,11 @@ sigma2.u_plot_mse_0.05 <-
 
 sigma2.u_plot_mse_0.3 <-
   res.c |> 
-  filter(sigma2.u == 0.3) |>  
+  filter(!model_type %in% c("FE") & sigma2.u == 0.3) |>  
   ggplot(aes(x=factor(model_type), y=sigma.u_mse, color=model_type, fill=model_type)) + 
   stat_halfeye() +
-  scale_color_manual(values=col6mods, guide="none")+
-  scale_fill_manual(values=alpha(col6mods, 0.4), guide="none") +
+  scale_color_manual(values=col6mods[2:6], guide="none")+
+  scale_fill_manual(values=alpha(col6mods[2:6], 0.4), guide="none") +
   labs(title = TeX("$\\sigma^2_u$=0.3"), 
        x = "", 
        y = TeX("$\\hat{\\sigma}^2_u$ MSE"))+
@@ -442,7 +426,7 @@ sigma2.u_plot_mse_0.3 <-
 
 
 ####################
-# (2) Variance estimates (among/between study) - only ML models 
+# (2) Variance estimates (among/between study) 
 ####################
 
 
@@ -630,30 +614,30 @@ ggsave("output/study1/Fig3/figure3.png", plot = figure3, width = 8.5, height = 1
 
 
 ### Combine into supplementary figures 
-### S2
+### S1
 supp.fig_sigma2.u.s_0.5 <- sigma2.u_plot_est_0.05 / sigma2.s_plot_est_0.05 + 
   plot_annotation(tag_levels='A') 
-ggsave("output/study1/Fig3/Sfigure2_sigma2.u.s.png", 
+ggsave("output/study1/Fig3/Sfigure_sigma2.u.s.png", 
        plot = supp.fig_sigma2.u.s_0.5, width = 9, height = 9.5)
 
-### S3
+### S2
 supp.fig_sigma2.u.s_mse <- sigma2.u_plot_mse_0.05 / sigma2.u_plot_mse_0.3 +
   plot_annotation(tag_levels='A') 
-ggsave("output/study1/Fig3/Sfigure3_sigma2.u_mse.png", 
+ggsave("output/study1/Fig3/Sfigure_sigma2.u_mse.png", 
+       plot = supp.fig_sigma2.u.s_mse, width = 9, height = 9.5)
+
+
+### S3
+supp.fig_sigma2.u.s_mse <- sigma2.s_plot_mse_0.05 / sigma2.s_plot_mse_0.3 +
+  plot_annotation(tag_levels='A') 
+ggsave("output/study1/Fig3/Sfigure_sigma2.s_mse.png", 
        plot = supp.fig_sigma2.u.s_mse, width = 9, height = 9.5)
 
 
 ### S4
-supp.fig_sigma2.u.s_mse <- sigma2.s_plot_mse_0.05 / sigma2.s_plot_mse_0.3 +
-  plot_annotation(tag_levels='A') 
-ggsave("output/study1/Fig3/Sfigure4_sigma2.s_mse.png", 
-       plot = supp.fig_sigma2.u.s_mse, width = 9, height = 9.5)
-
-
-### S5
 supp.fig_sigma2.total <- sigma2.T_plot_bias_all / sigma2.T_plot_mse_all + 
   plot_annotation(tag_levels='A') 
-ggsave("output/study1/Fig3/Sfigure5_sigma2.total.png", 
+ggsave("output/study1/Fig3/Sfigure_sigma2.total.png", 
        plot = supp.fig_sigma2.total, width = 9, height = 9.5)
 
 
@@ -690,14 +674,12 @@ cov_plot <-
   ggplot(aes(x=factor(model_type), y=cov_prop, color=CR_method, fill=CR_method)) +
   scale_color_manual(values=col)+
   scale_fill_manual(values=alpha(col, 0.4)) +
-  labs(title=TeX("by within study sampling correlation $\\rho$"), x="", y = TeX("Coverage rate of $\\hat{\\mu}$"))+
+  labs(title=TeX("by within study sampling correlation $\\phi$"), x="", y = TeX("Coverage rate of $\\hat{\\mu}$"))+
   geom_boxplot(width=0.4)+
   geom_hline(yintercept=0.95, colour="darkgray", linewidth=0.6)+
   facet_grid(~ rho, scales = "free", labeller=label_parsed) +
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-
 
 
 
@@ -715,7 +697,7 @@ ci_plot_0.05.0.05 <-
   #stat_halfeye() +
   scale_color_manual(values=col)+
   scale_fill_manual(values=alpha(col, 0.4)) +
-  labs(title=TeX("$\\sigma^2_u = 0.05$ and $\\sigma^2_s = 0.05$ (by $\\rho$ and study size)"), x="", y = TeX("Confidence interval width of $\\hat{\\mu}$"))+
+  labs(title=TeX("$\\sigma^2_u = 0.05$ and $\\sigma^2_s = 0.05$ (by $\\phi$ and study size)"), x="", y = TeX("Confidence interval width of $\\hat{\\mu}$"))+
   geom_boxplot(width=0.4)+
   facet_grid(factor(k.studies) ~ factor(rho), scales="free")+
   theme_bw()+
@@ -730,7 +712,7 @@ ci_plot_0.05.0.3 <-
   ggplot(aes(x=factor(CR_method), y=mu_ci_width, color=model_type, fill=model_type)) + 
   scale_color_manual(values=col)+
   scale_fill_manual(values=alpha(col, 0.4)) +
-  labs(title=TeX("$\\sigma^2_u = 0.05$ and $\\sigma^2_s = 0.3$ (by $\\rho$ and study size)"), x="", y = TeX("Confidence interval width of $\\hat{\\mu}$"))+
+  labs(title=TeX("$\\sigma^2_u = 0.05$ and $\\sigma^2_s = 0.3$ (by $\\phi$ and study size)"), x="", y = TeX("Confidence interval width of $\\hat{\\mu}$"))+
   geom_boxplot(width=0.4)+
   facet_grid(factor(k.studies) ~ factor(rho), scales="free")+
   theme_bw()+
@@ -745,7 +727,7 @@ ci_plot_0.3.0.3 <-
   ggplot(aes(x=factor(CR_method), y=mu_ci_width, color=model_type, fill=model_type)) + 
   scale_color_manual(values=col)+
   scale_fill_manual(values=alpha(col, 0.4)) +
-  labs(title=TeX("$\\sigma^2_u = 0.3$ and $\\sigma^2_s = 0.3$ (by $\\rho$ and study size)"), x="", y = TeX("Confidence interval width of $\\hat{\\mu}$"))+
+  labs(title=TeX("$\\sigma^2_u = 0.3$ and $\\sigma^2_s = 0.3$ (by $\\phi$ and study size)"), x="", y = TeX("Confidence interval width of $\\hat{\\mu}$"))+
   geom_boxplot(width=0.4)+
   facet_grid(factor(k.studies) ~ factor(rho), scales="free")+
   theme_bw()+
@@ -759,7 +741,7 @@ ci_plot_0.3.0.05 <-
   ggplot(aes(x=factor(CR_method), y=mu_ci_width, color=model_type, fill=model_type)) + 
   scale_color_manual(values=col)+
   scale_fill_manual(values=alpha(col, 0.4)) +
-  labs(title=TeX("$\\sigma^2_u = 0.3$ and $\\sigma^2_s = 0.05$ (by $\\rho$ and study size)"), x="", y = TeX("Confidence interval width of $\\hat{\\mu}$"))+
+  labs(title=TeX("$\\sigma^2_u = 0.3$ and $\\sigma^2_s = 0.05$ (by $\\phi$ and study size)"), x="", y = TeX("Confidence interval width of $\\hat{\\mu}$"))+
   geom_boxplot(width=0.4)+
   facet_grid(factor(k.studies) ~ factor(rho), scales="free")+
   theme_bw()+
@@ -772,51 +754,217 @@ ggsave("output/study1/xtra/ci_plot_0.3.0.05.png", plot = ci_plot_0.3.0.05, width
 
 
 
-
-
 ################################################################################
-# Additional stuff 
+# (e) Standard error of the overall mean 
 ################################################################################
 
 
-## data setup
-res.bb <- results |> 
-  filter(!model_type %in% c("ML-VCV-0.2", "ML-VCV-0.8")) 
+# plot SE per model type and CRVE method
+se_plot <-
+  results |> 
+  filter(!model_type=="FE" & !model_type=="RE" & CR_method %in% c("none", "CR2")) |> 
+  ggplot(aes(x=factor(CR_method), y=mu_se, color=model_type, fill=model_type)) + 
+  #stat_halfeye() +
+  scale_color_manual(values=col6mods[3:6],4, guide="none")+
+  scale_fill_manual(values=alpha(col6mods[3:6], 0.4), guide="none") +
+  labs(title=TeX("Standard Error (SE) of $\\hat{\\mu}$"), x="", y = "SE")+
+  geom_boxplot(width=0.4)+
+  facet_wrap(~factor(rho), ncol=1, scales="free")+
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))
 
-# derive coverage for this subset across all varying conditions
-cov.bb <- res.bb |>
-  group_by(model_type, CR_method, rho, sigma2.s, sigma2.u, k.studies) |> 
-  summarise(cov_prop = mean(mu_cov, na.rm = TRUE))
+ggsave("output/study1/xtra/se_plot.png", plot=se_plot, width=4, height=12)
 
-# Coverage
-cov_plot.bb <-
-  ggplot(cov.bb, aes(x=factor(rho), y=cov_prop, color=model_type, fill=model_type)) + 
-  scale_color_manual(values=col6mods, guide="none")+
+
+
+#####################
+# Derive difference in SE between models without CRVE and model with CRVE method
+
+CR2_dat <- results |> 
+  filter(CR_method=="CR2") |> 
+  rename(mu_se.cr2 = mu_se)
+
+none_dat <- results |> 
+  filter(CR_method=="none")
+
+# calculate difference in SE between none and CR2 method for each condition
+se_diff <- none_dat |> 
+  inner_join(CR2_dat, by=c("scenario", "sim", "model_type", "rho", "rho_lab", "sigma2.u", "sigma2.s", "k.studies")) |> 
+  mutate(se_diff = mu_se - mu_se.cr2) 
+
+
+# plot difference in SE per model type 
+se_diff_plot <-
+  se_diff |> 
+  filter(!model_type=="FE" & !model_type=="RE") |> 
+  ggplot(aes(x=factor(model_type), y=se_diff, color=model_type, fill=model_type)) + 
+  #stat_halfeye() +
+  scale_color_manual(values=col6mods,4, guide="none")+
   scale_fill_manual(values=alpha(col6mods, 0.4), guide="none") +
-  labs(title=TeX("Coverage rate of $\\hat{\\mu}$"), x="", y = "")+
+  labs(title=TeX("Difference in Standard Errors (SE) of $\\hat{\\mu}$"), x="", y = "Difference in SE (none - CR2)")+
+  geom_hline(yintercept=0, colour="darkgray", linewidth=0.9)+
   geom_boxplot(width=0.4)+
-  geom_hline(yintercept=0.95, colour="darkgray", linewidth=0.6)+ 
-  facet_wrap(~factor(CR_method), ncol=1, scales="free")+
+  facet_wrap(~rho_lab, labeller=label_parsed, ncol=1, scales="free")+
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+
+ggsave("output/study1/xtra/se_diff_plot.png", plot=se_diff_plot, width=4, height=12)
+
+
+
+
+
+
+################################################################################
+# (e) Confidence intervals of overall mean (with different settings)
+################################################################################
+
+
+col.3 <- c("#08519C", "#3182BD", "#6BAED6")
+
+## Methods
+# A - t-test and adjusted df
+# B - z-test
+# C - t-test and non-adjusted df
+
+
+######## CI width
+
+# set up CI dataset
+res.ci <- results |>
+  dplyr::select(model, scenario, model_type, k.studies,
+                mu_ci_width, mu_ci_width_z, mu_ci_width_r,
+                rho, rho_lab, sigma2.s, sigma2.u, k, CR_method) |>
+  pivot_longer(
+    cols = starts_with("mu_ci_width"),
+    names_to = "method",
+    values_to = "ci_value"
+  ) |>
+  mutate(method = case_when(
+    method == "mu_ci_width"   ~ "A",
+    method == "mu_ci_width_z" ~ "B",
+    method == "mu_ci_width_r" ~ "C",
+    TRUE ~ method
+  ))
+
+
+# plot for study=20
+ci_per_study <-
+  res.ci |> 
+  ggplot(aes(x=factor(model_type), y=ci_value, color=method, fill=method)) + 
+  scale_color_manual(values=col.3)+
+  scale_fill_manual(values=alpha(col.3, 0.4)) +
+  labs(title=TeX(""), x="", y = TeX("Confidence interval width of $\\hat{\\mu}$"))+
+  geom_boxplot(width=0.4)+
+  facet_grid(factor(CR_method) ~ rho_lab,
+             labeller=label_parsed)+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-# CI widths
-ci_plot.bb <-
-  ggplot(res.bb, aes(x=factor(rho), y=mu_ci_width, color=model_type, fill=model_type)) + 
-  scale_color_manual(values=col6mods)+
-  scale_fill_manual(values=alpha(col6mods, 0.4)) +
-  labs(title=TeX("Confidence interval width of $\\hat{\\mu}$"), x="", y ="")+
-  geom_boxplot(width=0.4)+
-  facet_wrap(~factor(CR_method), ncol=1, scales="free")+
+ggsave("output/study1/inference/ci_plots.png",
+       plot=ci_per_study, width=11, height=11)
+
+
+
+######### Coverage rate
+
+# set up coverage dataset
+res.cov <- results |>
+  dplyr::select(model, scenario, model_type, k.studies,
+                rho, rho_lab, mu_cov, mu_cov_r, mu_cov_z, 
+                sigma2.s, sigma2.u, k, CR_method) |>
+  pivot_longer(
+    cols = starts_with("mu_cov"),
+    names_to = "method",
+    values_to = "cov_value"
+  ) |>
+  mutate(method = case_when(
+    method == "mu_cov"   ~ "A",
+    method == "mu_cov_z" ~ "B",
+    method == "mu_cov_r" ~ "C",
+    TRUE ~ method
+  ))
+
+# get coverage rate for each model type and CRVE method
+cov_prop <- res.cov |> 
+  group_by(model_type, method, rho, rho_lab, k.studies,
+           sigma2.u, sigma2.s, CR_method) |> 
+  summarise(cov_prop = mean(cov_value, na.rm = TRUE))
+
+
+
+# plot of coverage rate 
+cov_per_method <-
+  cov_prop |>
+  filter(!model_type %in% c("FE", "RE")) |>
+  ggplot(aes(x=factor(model_type), y=cov_prop, color=method, fill=method)) +
+  scale_color_manual(values=col.3)+
+  scale_fill_manual(values=alpha(col.3, 0.4)) +
+  labs(title=TeX(""),
+       x="",
+       y = TeX("Coverage rate of $\\hat{\\mu}$"))+
+  geom_boxplot()+
+  geom_hline(yintercept=0.95, colour="darkgray", linewidth=0.6)+
+  facet_grid(cols=vars(rho_lab),
+             rows=vars(CR_method),
+             #scales = "free",
+             labeller=label_parsed) +
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-
-### Combine into Figure 2.Bis
-figure2_bis <- wrap_plots(cov_plot.bb, ci_plot.bb) +
-  plot_annotation(tag_levels='A')
-
-ggsave("output/study1/Fig2/figure2_bis.png", plot = figure2_bis, width = 11, height = 14)
+ggsave("output/study1/inference/coverage_rate_MLonly.png",
+       plot=cov_per_method, width=10, height=12)
 
 
+
+
+######## Type I error rate (this is extra just for curiosity)
+
+# set up typeI dataset
+res.typeI <- results |>
+  #filter(CR_method == "none") |>
+  dplyr::select(model, scenario, model_type, k.studies,
+                rho, rho_lab, sigma2.s, sigma2.u, k, 
+                mu_typeI_t, mu_typeI_t_df, mu_typeI_z,
+                CR_method) |>
+  pivot_longer(
+    cols = starts_with("mu_typeI"),
+    names_to = "method",
+    values_to = "typeI_value"
+  ) |>
+  mutate(method = case_when(
+    method == "mu_typeI_t" ~ "A",
+    method == "mu_typeI_t_df" ~ "B",
+    method == "mu_typeI_z" ~ "C",
+    TRUE ~ method
+  ))
+
+# get type I error rate for each model type and CRVE method
+typeI_rate <- res.typeI |> 
+  group_by(model_type, method, rho, rho_lab, k.studies, sigma2.u, sigma2.s, CR_method) |> 
+  summarise(typeI_rate = mean(typeI_value, na.rm = TRUE)*100)
+
+
+
+# plot type I error rate (the best would be Sattherwaite degrees of freedom)
+typeI_per_method <-
+  typeI_rate |>
+  filter(!model_type %in% c("FE", "RE")) |>
+  ggplot(aes(x=factor(model_type), y=typeI_rate, color=method, fill=method)) +
+  scale_color_manual(values=col.3)+
+  scale_fill_manual(values=alpha(col.3, 0.4)) +
+  labs(title=TeX("by within study sampling correlation $\\phi$ and CRVE method"),
+       x="",
+       y = TeX("Type I error rate (%) of $\\hat{\\mu}$"))+
+  geom_boxplot()+
+  geom_hline(yintercept=5, colour="darkgray", linewidth=0.6)+
+  facet_grid(cols=vars(rho_lab),
+             rows=vars(CR_method),
+             #scales = "free",
+             labeller=label_parsed) +
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggsave("output/study1/inference/typeI_error.png",
+       plot=typeI_per_method, width=10, height=12)
 
