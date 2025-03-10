@@ -251,3 +251,25 @@ Gelman, A. (2005). Analysis of variance: Why it is more important than ever. Ann
 33(1), 1–53. https://doi.org/10.1214/009053604000001048
 
 Horváth, G., Garamszegi, L. Z., & Herczeg, G. (2023). Phylogenetic meta-analysis reveals system-specific behavioural type–behavioural predictability correlations. Royal Society Open Science, 10(9). https://doi.org/10.1098/rsos.230303
+
+
+# Session information
+
+```{r}
+#| label: Reproducibility-SessionInfo-R-environment
+#| fig-align: "center"
+#| out-width: '100%'
+#| results: asis
+#| message: false
+#| warnings: false
+
+library(sessioninfo)
+library(details)
+
+si <- session_info()
+si$packages <- si$packages %>% 
+  filter(package %in% c("metafor", "ape", "clubSandwich", "Matrix", "corpcor", "dplyr", "kableExtra", "xtable", "rotl", "Hmisc", "lattice"))
+
+details(si, summary = 'Current session info', open = FALSE)
+
+```
