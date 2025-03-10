@@ -21,11 +21,13 @@ editor_options:
 
 Here we provide code to reproduce the results from the case studies in our manuscript "Modelling approaches for meta-analyses with dependent effect sizes in ecology and evolution". This code can be use to produce similar analyses to find an appropriate sampling variance covariance matrix assuming a constant within-study correlation.
 
-We note two important and cautionary points. 
+We note three important and cautionary points. 
 
-  (1) If the primary studies provided sufficient information to compute covariances and correlations among effect sizes, then the sampling $\mathbf{V^*}$ structure can be more complex (i.e. non-constant correlation within-studies) and specified using a combination of known and arbitrary chosen values. 
+  (1) For the purpose to illustrate the application of modelling approaches to handle dependent sampling errors we reanalyse two published meta-analysis. The models have been simplified from the original studies, so the results are for illustration only and should not be used to draw substantive conclusions.
   
-  (2) Typical model specification and model selection should be undertaken before these steps, such as choosing model fixed effects and random effects.
+  (2) If the primary studies provided sufficient information to compute covariances and correlations among effect sizes, then the sampling $\mathbf{V^*}$ structure can be more complex (i.e. non-constant correlation within-studies) and specified using a combination of known and arbitrary chosen values depending how much information is available.
+  
+  (3) The usual model specification and model selection should be undertaken before comparing model fits with different sampling $\mathbf{V^*}$ matrix specification; adding a random effect at the level of the individual estimate (very important and is often overlooked), accounting for potential heterogeneity at each level of hierarchical or correlated clustering (this can be difficult as it can be unclear what consists of a `level' in certain datasets), and finally consider if a level should be modelled as a random effect or fixed effect (read more in section 6 in Gelman (2025)). 
 
 <!-- For any comments or questions please contact: xxx -->
 
@@ -52,7 +54,7 @@ dat <- read_excel(here("data/case_studies/Supplementary Table 1.xlsx"), sheet="D
 dat <- dat |> filter(`Mycorrhizal status`=="different")
 ```
 
-Now, we want to set up a vector of within-study correlations $\rho$ to test (including $\rho=0$). Then we specify the sampling error variances (the diagonal of the assumed sampling error $\mathbf{V^*}$).
+Now, we want to set up a vector of within-study correlations $\rho$ to test (including $\rho=0$). Then we specify the sampling error variances (the diagonal of the assumed sampling error $\mathbf{V^*}$) and an empty dataframe to store the results from all models. 
 
 ```{r}
 
@@ -73,7 +75,7 @@ results <- data.frame(rho = numeric(), beta = numeric(),
 
 ```
 
-Using a for loop we generate a model per each within study constant $\rho$ value. First, we derive the assumed sampling error $\mathbf{V^*}$. Second, we fit a multilevel model with a t-distribution and using the adjusted degrees of freedom as recommended by \texttt{metafor} (see [more recommended for metafor practices here](https://wviechtb.github.io/metafor/reference/misc-recs.html)). Third, we obtain the cluster robust Finally, we store the results
+Using a for loop we generate a model per each within study constant $\rho$ value. First, we derive the assumed sampling error $\mathbf{V^*}$. Second, we fit a multilevel model with a t-distribution and using the adjusted degrees of freedom as recommended by \texttt{metafor} (see [more recommended for metafor practices here](https://wviechtb.github.io/metafor/reference/misc-recs.html)). Third, we obtain the cluster robust CR2 model estimates. Finally, we store the results within the specified dataframe. 
 
 ```{r}
 for (rho in cor_values) {
@@ -179,7 +181,7 @@ phylo_matrix <- vcv(compute.brlen(tr, corr = T))
 
 ```
 
-Now, let's set up the vector of within-study correlations $\rho$ that we want to test (including $\rho=0$). Then we specify the sampling error variances (the diagonal of the assumed sampling error $\mathbf{V^*}$). For each $\rho$ value we derive the assumed sampling error $\mathbf{V^*}$, fit the phylogenetic meta-analytical model with a t-distribution and using the adjusted degrees of freedom as recommended by \texttt{metafor} (see [more recommended for metafor practices here](https://wviechtb.github.io/metafor/reference/misc-recs.html)).
+Now, let's set up the vector of within-study correlations $\rho$ that we want to test (including $\rho=0$) and an empty dataframe to store the results from all models. 
 
 ```{r}
 # corr values to test
@@ -193,7 +195,11 @@ results <- data.frame(rho = numeric(), beta = numeric(),
                       s2.phylogeny = numeric(), s2.species = numeric(),
                       loglik = numeric())
 
+```
 
+For each $\rho$ value we derive the assumed sampling error $\mathbf{V^*}$ and fit the phylogenetic meta-analytical model with a t-distribution and using the adjusted degrees of freedom as recommended by \texttt{metafor} (see [more recommended for metafor practices here](https://wviechtb.github.io/metafor/reference/misc-recs.html)). Additionally, we derive the cluster robust CR1 model estimates. 
+
+```{r}
 for (rho in cor_values) {
   
   # get VCV matrix 
@@ -240,5 +246,8 @@ kable(results)
 # References
 
 Crawford, K. M., Bauer, J. T., Comita, L. S., Eppinga, M. B., Johnson, D. J., Mangan, S. A., Queenborough, S. A., Strand, A. E., Suding, K. N., Umbanhowar, J., & Bever, J. D. (2019). When and where plant-soil feedback may promote plant coexistence: a meta-analysis. Ecology letters, 22(8), 1274–1284. https://doi.org/10.1111/ele.13278
+
+Gelman, A. (2005). Analysis of variance: Why it is more important than ever. Annals of Statistics,
+33(1), 1–53. https://doi.org/10.1214/009053604000001048
 
 Horváth, G., Garamszegi, L. Z., & Herczeg, G. (2023). Phylogenetic meta-analysis reveals system-specific behavioural type–behavioural predictability correlations. Royal Society Open Science, 10(9). https://doi.org/10.1098/rsos.230303
