@@ -13,7 +13,7 @@ results <- combined_dat
 library(pacman)
 p_load(tidyverse, ggplot2, broom, here,
        cowplot, ggdist, patchwork,
-       scales, latex2exp)
+       scales, latex2exp, xtable)
 
 # reformat names (typo)
 results$model <- gsub("PML-VCV-02", "PML-VCV-0.2", results$model)
@@ -98,6 +98,46 @@ results <- results |>
   filter(!model_type %in% c("ML-VCV-0.5"))
 
 
+
+########
+## Converged rate % and average comp.time of models per condition 
+conv.summary <- results |> 
+  group_by(model_type, k.studies) |> 
+  summarise(n_models = n(), comp_time = mean(comp.time)) |> 
+  mutate(perc_models = (n_models*100) / 720000, 
+         comp_time = round(comp_time, 2)) |> 
+  select(-n_models) |> 
+  arrange(k.studies) ##to order ascendinng by k.studies
+#print(xtable(conv.summary, digits=c(0,0,2,2,2)), include.rownames=FALSE) ##save table for supporting information
+
+
+## derive sample variance of estimates (for MCSE)
+sample_var <- results |> 
+  group_by(model_type, rho) |>
+  summarise(mu_mean = mean(mu_est),
+            u_mean = mean(sigma.u_est),
+            s_mean = mean(sigma.s_est),
+            n_mean = mean(sigma.n_est),
+            p_mean = mean(sigma.p_est),
+            mu_S2 = sum((mu_est - mean(mu_est))^2) / (n() - 1),
+            u_S2 = sum((sigma.u_est - mean(sigma.u_est))^2) / (n() - 1),
+            s_S2 = sum((sigma.s_est - mean(sigma.s_est))^2) / (n() - 1),
+            n_S2 = sum((sigma.n_est - mean(sigma.n_est))^2) / (n() - 1),
+            p_S2 = sum((sigma.p_est - mean(sigma.p_est))^2) / (n() - 1)) |> 
+  ungroup()
+
+
+## derive the bias Monte Carlo SE (per model, method and condition) for overall mean
+mu_mcse <- sample_var |> 
+  group_by(model_type, rho, mu_mean) |> 
+  summarise(mu_mcse = round(sqrt(mu_S2/n()),5)) |> 
+  arrange(rho)
+#print(xtable(mu_mcse, digits=c(0,2,2,4,3)), include.rownames=FALSE) ##save table for supporting information
+
+
+
+
+
 # set up colors
 col5mods <- c("#3CB371", "#FFD966", "#FFC845", "#FFB72A")
 #col6mods <- c("#C39BD6", "#2E8B57", "#FFE066", "#FFDC4D", "#FFD733")
@@ -119,6 +159,7 @@ res.a <- results |>
 cov.a <- res.a |>
   group_by(model_type, rho,  rho_lab, sigma2.s, sigma2.u, sigma2.p, sigma2.n, k.studies) |> #here look at model_type as there is no CRVE methods
   summarise(cov_prop = mean(mu_cov, na.rm = TRUE))
+
 
 
 
@@ -250,6 +291,17 @@ cov.b <- results |>
   group_by(model_type, CR_method, rho, sigma2.s, sigma2.u, k.studies) |> 
   summarise(cov_prop = mean(mu_cov, na.rm = TRUE))
 
+## derive the coverage Monte Carlo SE (per model, method and condition)
+cov_mcse <- cov.b |> 
+  filter(CR_method=="none") |> 
+  group_by(model_type, rho) |> 
+  summarise(mean_cov = mean(cov_prop),  # Compute the mean coverage
+            cov_mcse = round(sqrt((mean_cov * (1 - mean_cov)) / n()), 5)) |>  # Apply MCSE formula
+  arrange(rho) 
+
+#print(xtable(cov_mcse, digits=c(0,2,2,3,4)), include.rownames=FALSE) ##save table for supporting information
+
+
 
 ####################
 # (1) Coverage 
@@ -325,6 +377,18 @@ sigma.mean <- res.c |>
             sigma2.s_bias_mean = mean(sigma2.s_bias),
             sigma2.u_mse_mean = mean(sigma.u_mse),
             sigma2.s_mse_mean = mean(sigma.s_mse))
+
+
+## derive Monte Carlo SE (per model, method and condition) for all variance components
+s2_mcse <- sample_var |> 
+  group_by(model_type, rho) |> 
+  summarise(s2.u_mcse = round(sqrt(u_S2/n()),5),
+            s2.s_mcse = round(sqrt(s_S2/n()),5),
+            s2.n_mcse = round(sqrt(n_S2/n()),5),
+            s2.p_mcse = round(sqrt(p_S2/n()),5)) |> 
+  arrange(rho)
+#print(xtable(s2_mcse, digits=c(0,2,2,3,3,3,3)), include.rownames=FALSE) ##save table for supporting information
+
 
 
 

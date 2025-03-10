@@ -1,5 +1,5 @@
 ---
-title: "Modelling approaches for meta-analyses with dependent effect sizes in ecology and evolution: Case sudies"
+title: "Case studies for: Modelling approaches for meta-analyses with dependent effect sizes in ecology and evolution"
 #author: "Coralie Williams, Yefeng Yang, David Warton, Shinichi Nakagawa"
 date: "Last compiled on `r format(Sys.time(), '%d %B, %Y')`"
 format:
@@ -19,11 +19,21 @@ editor_options:
 
 # Overview
 
-This page is a summary of the results from the two case studies comparing different modelling approaches for meta-analyses with dependent effect sizes in ecology and evolution.
+Here we provide code to reproduce the results from the case studies in our manuscript "Modelling approaches for meta-analyses with dependent effect sizes in ecology and evolution". This code can be use to produce similar analyses to find an appropriate sampling variance covariance matrix assuming a constant within-study correlation.
+
+We note two important and cautionary points. 
+
+  (1) If the primary studies provided sufficient information to compute covariances and correlations among effect sizes, then the sampling $\mathbf{V^*}$ structure can be more complex (i.e. non-constant correlation within-studies) and specified using a combination of known and arbitrary chosen values. 
+  
+  (2) Typical model specification and model selection should be undertaken before these steps, such as choosing model fixed effects and random effects.
+
+<!-- For any comments or questions please contact: xxx -->
+
+---
+
+Before starting let's load and install the necessary R packages.
 
 ```{r}
-#| include: false
-
 # load and install packages
 library(pacman)
 p_load(readxl, tidyverse, metafor, ape, dplyr,
@@ -32,7 +42,7 @@ p_load(readxl, tidyverse, metafor, ape, dplyr,
 
 ```
 
-# Case study 1: Meta-analysis on plant coexistence
+# 1. Case study: Meta-analysis on plant coexistence
 
 Crawford et al. (2019) used a large meta-analysis dataset of pairwise plant-soil feedback measures to investigate whether these feedbacks contribute to plant species coexistence. First we want to load the meta-analytical dataset provided in Crawford et al. (2019).
 
@@ -42,7 +52,7 @@ dat <- read_excel(here("data/case_studies/Supplementary Table 1.xlsx"), sheet="D
 dat <- dat |> filter(`Mycorrhizal status`=="different")
 ```
 
-Now, we want to set up a vector of within-study correlations $\rho$ to test (including $\rho=0$). Then we specify the sampling error variances (the diagonal of the assumed sampling error $\mathbf{V^*}$). For each $\rho$ value we derive the assumed sampling error $\mathbf{V^*}$, fit the model with a t-distribution and using the adjusted degrees of freedom as recommended by \texttt{metafor} (see [more recommended for metafor practices here](https://wviechtb.github.io/metafor/reference/misc-recs.html)).
+Now, we want to set up a vector of within-study correlations $\rho$ to test (including $\rho=0$). Then we specify the sampling error variances (the diagonal of the assumed sampling error $\mathbf{V^*}$).
 
 ```{r}
 
@@ -61,7 +71,11 @@ results <- data.frame(rho = numeric(), beta = numeric(),
                       s2.phylogeny = numeric(), s2.species = numeric(),
                       loglik = numeric())
 
+```
 
+Using a for loop we generate a model per each within study constant $\rho$ value. First, we derive the assumed sampling error $\mathbf{V^*}$. Second, we fit a multilevel model with a t-distribution and using the adjusted degrees of freedom as recommended by \texttt{metafor} (see [more recommended for metafor practices here](https://wviechtb.github.io/metafor/reference/misc-recs.html)). Third, we obtain the cluster robust Finally, we store the results
+
+```{r}
 for (rho in cor_values) {
   
   # get VCV matrix 
@@ -100,19 +114,18 @@ for (rho in cor_values) {
 kable(results)
 ```
 
+# 2. Case study: Phylogenetic multilevel meta-analysis on behavioural predictability
 
-# Case study 2: Phylogenetic multilevel meta-analysis on behavioural predictability
-
-Horváth et al. (2023) investigated whether behavioural type (mean behaviour) and behavioural predictability (within-individual variation) evolve independently or under system-specific constraints across multiple species.
-Here we load and prepare the meta-analytical dataset and phylogenetic tree provided in Horváth et al. (2023). 
+Horváth et al. (2023) investigated whether behavioural type (mean behaviour) and behavioural predictability (within-individual variation) evolve independently or under system-specific constraints across multiple species. Here we load and prepare the meta-analytical dataset and phylogenetic tree provided in Horváth et al. (2023).
 
 ```{r}
+#| output: false
 #| warnings: false
 
-library(ape); library(Matrix);library(rotl); library(rncl);
-library(Hmisc); library(lattice); library(HDInterval); 
+### code from supplementary HTML file of Horváth et al. (2023)
 
-### code from supplementary HTML file
+library(ape); library(Matrix);library(rotl); library(rncl);
+library(Hmisc); library(lattice); library(HDInterval)
 # Set up meta-analysis data
 xdata <- read_excel(here("data/case_studies/Metadata_ALL_NEWER.xlsx"))
 xdata$N_OBS<-as.numeric(xdata$N_OBS)
@@ -150,7 +163,7 @@ species[,1] <- as.character(species[,1])
 
 taxa <- tnrs_match_names(unique(xdata$scientific.name), context="Animals")
 taxon_map <- structure(taxa$search_string, names=taxa$unique_name)
-tr<-tol_induced_subtree(ott_id(taxa)[is_in_tree(ott_id(taxa))])
+tr <- tol_induced_subtree(ott_id(taxa)[is_in_tree(ott_id(taxa))])
 tr <- readRDS(here("data/case_studies/phylotree.rds"))
 
 # clean up tip labels
@@ -167,7 +180,6 @@ phylo_matrix <- vcv(compute.brlen(tr, corr = T))
 ```
 
 Now, let's set up the vector of within-study correlations $\rho$ that we want to test (including $\rho=0$). Then we specify the sampling error variances (the diagonal of the assumed sampling error $\mathbf{V^*}$). For each $\rho$ value we derive the assumed sampling error $\mathbf{V^*}$, fit the phylogenetic meta-analytical model with a t-distribution and using the adjusted degrees of freedom as recommended by \texttt{metafor} (see [more recommended for metafor practices here](https://wviechtb.github.io/metafor/reference/misc-recs.html)).
-
 
 ```{r}
 # corr values to test

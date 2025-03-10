@@ -97,6 +97,30 @@ results$mu_typeI_z <- results$p_value_z < 0.05
 results$mu_typeI_t <- results$p_value_t < 0.05
 results$mu_typeI_t_df <- results$p_value_t_df < 0.05
 
+
+########
+## Converged rate % and average comp.time of models per condition 
+conv.summary <- results |> 
+  group_by(model_type, k.studies) |> 
+  summarise(n_models = n(), comp_time = mean(comp.time)) |> 
+  mutate(perc_models = (n_models*100) / 240000, 
+         comp_time = round(comp_time, 2)) |> 
+  select(-n_models) |> 
+  arrange(k.studies) ##to order ascendinng by k.studies
+#xtable(conv.summary) ##save table for supporting information
+
+
+## derive sample variance of estimates (for MCSE)
+sample_var <- results |> 
+  group_by(model_type, rho) |>
+  summarise(mean_mu_est = mean(mu_est),
+            mu_S2 = sum((mu_est - mean(mu_est))^2) / (n() - 1),
+            u_S2 = sum((sigma.u_est - mean(sigma.u_est))^2) / (n() - 1),
+            s_S2 = sum((sigma.s_est - mean(sigma.s_est))^2) / (n() - 1)) |> 
+  ungroup()
+
+
+
 ###### set up colors
 col6mods <- c("#7297C7", "#FECA91","#A5D9A5","#D4A5E8","#C39BD6", "#A087CA")
   
@@ -119,6 +143,24 @@ cov.a <- res.a |>
   group_by(model_type, rho, rho_lab, sigma2.s, sigma2.u, k.studies) |> #here look at model_type as there is no CRVE methods
   summarise(cov_prop = mean(mu_cov, na.rm = TRUE))
 
+
+## derive the bias Monte Carlo SE (per model, method and condition) for overall mean
+mu_mcse <- sample_var |> 
+  group_by(model_type, rho) |> 
+  summarise(mean_mu_est = mean_mu_est,  #get mean estimate
+            mu_mcse = round(sqrt(mu_S2/n()),5)) |> 
+  arrange(rho) 
+#print(xtable(mu_mcse, digits=c(0,2,2,2,4)), include.rownames=FALSE) ##save table for supporting information
+
+
+
+## derive the coverage Monte Carlo SE (per model, method and condition)
+cov_mcse <- cov.a |> 
+  group_by(model_type, rho, CR_method) |> 
+  summarise(mean_cov = mean(cov_prop),  # Compute the mean coverage
+            cov_mcse = round(sqrt((mean_cov * (1 - mean_cov)) / n()), 5)) |>  # Apply MCSE formula
+  arrange(rho) 
+#print(xtable(cov_mcse, digits=c(0,2,2,3,4)), include.rownames=FALSE) ##save table for supporting information
 
 
 
@@ -241,6 +283,8 @@ ggsave("output/study1/Fig1/figure1.png", plot = figure1, width = 11, height = 8)
 cov.b <- results |>
   group_by(model_type, CR_method, rho, sigma2.s, sigma2.u, k.studies) |> 
   summarise(cov_prop = mean(mu_cov, na.rm = TRUE))
+
+
 
 
 

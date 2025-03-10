@@ -11,7 +11,7 @@ results <- combined_dat
 library(pacman)
 p_load(tidyverse, ggplot2, broom, here,
        cowplot, ggdist, patchwork,
-       scales, latex2exp)
+       scales, latex2exp, xtable)
 
 # create new variable for plots: model_type
 results$model_type <- gsub("-CR1|-CR0", "", results$model)
@@ -69,6 +69,35 @@ results <- results |>
   filter(!model_type %in% c("ML-VCV-0.5"))
 
 
+
+## Converged rate % and average comp.time of models per condition 
+conv.summary <- results |> 
+  group_by(model_type, k.studies) |> 
+  summarise(n_models = n(), comp_time = mean(comp.time)) |> 
+  mutate(perc_models = (n_models*100) / 720000, 
+         comp_time = round(comp_time, 2)) |> 
+  select(-n_models) |> 
+  arrange(k.studies) ##to order ascendinng by k.studies
+#print(xtable(conv.summary, digits=c(0,0,2,2,2)), include.rownames=FALSE) ##save table for supporting information
+
+
+
+## derive sample variance of estimates (for MCSE)
+sample_var <- results |> 
+  group_by(model_type, rho) |>
+  summarise(b0_mean = mean(b0_est),
+            b1_mean = mean(b1_est),
+            b2_mean = mean(b2_est),
+            b3_mean = mean(b3_est),
+            b0_S2 = sum((b0_est - mean(b0_est))^2) / (n() - 1),
+            b1_S2 = sum((b1_est - mean(b1_est))^2) / (n() - 1),
+            b2_S2 = sum((b2_est - mean(b2_est))^2) / (n() - 1),
+            b3_S2 = sum((b3_est - mean(b3_est))^2) / (n() - 1)) |> 
+  ungroup()
+
+
+
+
 # set up colors
 col5mods <- c("#3CB371", "#FFD966", "#FFC845", "#FFB72A")
 #col6mods <- c("#C39BD6", "#2E8B57", "#FFE066", "#FFDC4D", "#FFD733")
@@ -89,6 +118,35 @@ cov <- results |>
             cov_prop_b1 = mean(b1_cov, na.rm = TRUE),
             cov_prop_b2 = mean(b2_cov, na.rm = TRUE),
             cov_prop_b3 = mean(b3_cov, na.rm = TRUE))
+
+
+
+## derive the bias Monte Carlo SE (per model, method and condition) for all estimates
+mu_mcse <- sample_var |> 
+  group_by(model_type, rho) |> 
+  summarise(b0_mean = b0_mean,
+            b0_mcse = round(sqrt(b0_S2/n()),5),
+            b1_mean = b1_mean,
+            b1_mcse = round(sqrt(b1_S2/n()),5),
+            b2_mean = b2_mean,
+            b2_mcse = round(sqrt(b2_S2/n()),5),
+            b3_mean = b3_mean,
+            b3_mcse = round(sqrt(b3_S2/n()),5)) |> 
+  arrange(rho)
+#print(xtable(mu_mcse, digits=c(0,2,2,3,3,3,3,3,3,3,3)), include.rownames=FALSE) ##save table for supporting information
+
+
+## derive the coverage Monte Carlo SE (per model, method and condition)
+cov_mcse <- cov.b |> 
+  group_by(model_type, rho) |> 
+  summarise(mean_cov = mean(cov_prop),  # Compute the mean coverage
+            cov_mcse = round(sqrt((mean_cov * (1 - mean_cov)) / n()), 5)) |>  # Apply MCSE formula
+  arrange(rho) |> 
+  select(-mean_cov)
+#print(xtable(cov_mcse, digits=c(0,2,2,4)), include.rownames=FALSE) ##save table for supporting information
+
+
+
 
 
 ####################
