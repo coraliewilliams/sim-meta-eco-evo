@@ -1,6 +1,5 @@
 ---
 title: "Case studies for: Modelling approaches for meta-analyses with dependent effect sizes in ecology and evolution"
-#author: "Coralie Williams, Yefeng Yang, David Warton, Shinichi Nakagawa"
 date: "Last compiled on `r format(Sys.time(), '%d %B, %Y')`"
 format:
   html:
@@ -23,7 +22,7 @@ Here we provide code to reproduce the results from the case studies in our manus
 
 We note three important and cautionary points. 
 
-  (1) For the purpose to illustrate the application of modelling approaches to handle dependent sampling errors we reanalyse two published meta-analysis. The models have been simplified from the original studies, so the results are for illustration only and should not be used to draw substantive conclusions.
+  (1) For the purpose of illustrating the application of modelling approaches to handle dependent sampling errors, we reanalysed two published meta-analyses. The models have been simplified compared with those in the original studies, so the results are for illustration only and should not be used to draw substantive conclusions.
   
   (2) If the primary studies provided sufficient information to compute covariances and correlations among effect sizes, then the sampling $\mathbf{V^*}$ structure can be more complex (i.e. non-constant correlation within-studies) and specified using a combination of known and arbitrary chosen values depending how much information is available.
   
