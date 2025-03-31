@@ -313,10 +313,10 @@ cov_plot.b <-
   #stat_halfeye() +
   scale_color_manual(values=col5mods,4, guide="none")+
   scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
-  labs(title=TeX("Coverage rate of $\\hat{\\mu}$"), x="", y = "")+
+  labs(title="", x=TeX("$\\phi$"), y =TeX("Coverage rate of $\\hat{\\mu}$"))+
   geom_boxplot(width=0.4)+
   geom_hline(yintercept=0.95, colour="darkgray", linewidth=0.6)+ 
-  scale_y_continuous(limits=c(0.45, 0.98), breaks=seq(0, 0.95, 0.05))+
+  scale_y_continuous(limits=c(0.38, 0.98), breaks=seq(0.05, 0.95, 0.1))+
   facet_wrap(~factor(CR_method), ncol=1)+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
@@ -333,7 +333,7 @@ ci_plot.b <-
   #stat_halfeye() +
   scale_color_manual(values=col5mods, name="model")+
   scale_fill_manual(values=alpha(col5mods, 0.4), name="model") +
-  labs(title=TeX("Confidence interval width of $\\hat{\\mu}$"), x="", y ="")+
+  labs(title="", x=TeX("$\\phi$"), y=TeX("Confidence interval width of $\\hat{\\mu}$"))+
   geom_boxplot(width=0.4)+
   facet_wrap(~factor(CR_method), ncol=1)+
   theme_bw()+
