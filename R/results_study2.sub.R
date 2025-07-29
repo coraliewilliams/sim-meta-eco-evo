@@ -81,7 +81,7 @@ results$b3_cov <- (results$b3_ci_lb <= results$b3) & (results$b3_ci_ub >= result
 ## Type I error of mean estimates (beta = 0); rejecting H0 when H0 is true (p-value<0.05)
 ## "incorrectly rejecting the null hypothesis."
 results_typeI <- results |> 
-  filter(b3 == 0) |> # same as: filter(b1 == 0 & b2 == 0 & b3 == 0)
+  filter(b1 == 0, b2 == 0, b3 == 0) |> # same as: filter(b1 == 0 & b2 == 0 & b3 == 0)
   mutate(b1_typeI = b1_pval < 0.05,
          b2_typeI = b2_pval < 0.05,
          b3_typeI = b3_pval < 0.05) |> 
@@ -94,7 +94,7 @@ results_typeI <- results |>
 ## Power of mean estimates (beta ≠ 0); Type II error: failing to reject H0 when H1 is true (p-value>0.05)
 ## "incorrectly failing to reject the null hypothesis.  (1 – β is power)."
 results_power <- results |> 
-  filter(b3 != 0) |> 
+  filter(b1 != 0, b2 != 0, b3 != 0) |> 
   mutate(b1_typeII = b1_pval >= 0.05,
          b2_typeII = b2_pval >= 0.05,
          b3_typeII = b3_pval >= 0.05,
