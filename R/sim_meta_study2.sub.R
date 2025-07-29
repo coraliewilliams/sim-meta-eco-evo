@@ -28,6 +28,10 @@ rho <- tab$rho[tab$job_number == job]
 k.species <- tab$k.species[tab$job_number == job]
 sigma2.n <- tab$sigma2.n[tab$job_number == job]
 sigma2.p <- tab$sigma2.p[tab$job_number == job]
+b0 <- 0.2  # intercept
+b1 <- tab$betas[tab$job_number == job]        # slope of measurement type effect difference (between reference = 0 and 1) -- study level
+b2 <- tab$betas[tab$job_number == job]        # slope of weight effect (species level) => continuous (log)
+b3 <- tab$betas[tab$job_number == job]        # sex (observation level) => slope of sex effect difference (reference = 0)
 
 ### results directory
 dir <- tab$save_location[tab$job_number == job]
@@ -61,20 +65,14 @@ P <- P[order(as.numeric(rownames(P))), order(as.numeric(rownames(P)))]
 
 
 ### simulate fixed effects
-# set up parameters
-b0 <- 0.2         # intercept
-b1 <- 0.6         # slope of measurement type effect difference (between reference = 0 and 1) -- study level
-b2 <- 0.2         # slope of weight effect (species level) => continuous (log)
-b3 <- 0.5         # sex (observation level) => slope of sex effect difference (reference = 0)
-
 measurement <- rep(0:1, times=round(k.studies/2)) # create measurement variable
 sigma2.bs <- 0.5   # between species variance in log(weight)
 species_effect <- rnorm(k.species, 0, sqrt(sigma2.bs))  # (assume mean centered)     
 
 # set up fixed predictors
 x1 <- measurement[study] # study level predictor (measurement type)
-x2 <- species_effect[species]    # species-level predictor (weight)
-x3 <- sample(0:1, size = k, replace = T)  # observation-level predictor (sex)
+x2 <- species_effect[species] # species-level predictor (weight)
+x3 <- rbinom(n=k, size=1, prob=0.5)  # observation-level predictor (sex or adult/juveniles) -> use rbinom to generate x3 technically its the same as sample(0:1, size = k, replace = T)
 
 
 ### simulate random effects
@@ -119,13 +117,14 @@ yi <- b0 + ## intercept
 # get simulated data
 dat <- data.frame(name = name, scenario = scen, seed = seed, job_number = job,
                   study.id = study, id = id, esid = esid, species.id = species,
-                  yi = yi, vi = vi,
+                  k.studies = k.studies, k.species = k.species, N = k,
+                  yi = yi, vi = vi, b0 = b0, 
                   b1 = b1, b2 = b2, b3 = b3, 
                   x1 = x1, x2 = x2, x3 = x3,
                   u.u = u.u, u.s = u.s, u.n = u.n, u.p = u.p,  mi = mi)
-# save simulated data in R file
-save(list = "dat", file = paste0("data/simdat_", job, ".RDATA"))
 
+# save simulated data with matrices in R file
+save(dat, P, VCV, rho, scen, seed, file = paste0("data/simdat_", job, ".RDATA"))
 
 
 ########### Run model 1: phylogenetic multilevel model  ----------------------------------------------
@@ -300,7 +299,6 @@ pmod3.cr1.cov <- pmod3.cr1.ci.lb < b0 && pmod3.cr1.ci.ub > b0
 pmod4.cov <- pmod4.est.ci.lb < b0 && pmod4.est.ci.ub > b0
 pmod4.cr0.cov <- pmod4.cr0.ci.lb < b0 && pmod4.cr0.ci.ub > b0
 pmod4.cr1.cov <- pmod4.cr1.ci.lb < b0 && pmod4.cr1.ci.ub > b0
-
 
 
 # sigma.n estimate (species level variance)
@@ -557,11 +555,102 @@ pmod4.cr1.b3.ci.lb <- pmod4_cr1$ci.lb[4]
 pmod4.cr1.b3.ci.ub <- pmod4_cr1$ci.ub[4]
 
 
+# b1 p-value
+pmod1.b1.pval <- pmod1$pval[2]
+pmod1.cr0.b1.pval <- pmod1_cr0$pval[2]
+pmod1.cr1.b1.pval <- pmod1_cr1$pval[2]
+pmod2.b1.pval <- pmod2$pval[2]
+pmod2.cr0.b1.pval <- pmod2_cr0$pval[2]
+pmod2.cr1.b1.pval <- pmod2_cr1$pval[2]
+pmod3.b1.pval <- pmod3$pval[2]
+pmod3.cr0.b1.pval <- pmod3_cr0$pval[2]
+pmod3.cr1.b1.pval <- pmod3_cr1$pval[2]
+pmod4.b1.pval <- pmod4$pval[2]
+pmod4.cr0.b1.pval <- pmod4_cr0$pval[2]
+pmod4.cr1.b1.pval <- pmod4_cr1$pval[2]
+
+# b2 p-value
+pmod1.b2.pval <- pmod1$pval[3]
+pmod1.cr0.b2.pval <- pmod1_cr0$pval[3]
+pmod1.cr1.b2.pval <- pmod1_cr1$pval[3]
+pmod2.b2.pval <- pmod2$pval[3]
+pmod2.cr0.b2.pval <- pmod2_cr0$pval[3]
+pmod2.cr1.b2.pval <- pmod2_cr1$pval[3]
+pmod3.b2.pval <- pmod3$pval[3]
+pmod3.cr0.b2.pval <- pmod3_cr0$pval[3]
+pmod3.cr1.b2.pval <- pmod3_cr1$pval[3]
+pmod4.b2.pval <- pmod4$pval[3]
+pmod4.cr0.b2.pval <- pmod4_cr0$pval[3]
+pmod4.cr1.b2.pval <- pmod4_cr1$pval[3]
+
+# b3 p-value
+pmod1.b3.pval <- pmod1$pval[4]
+pmod1.cr0.b3.pval <- pmod1_cr0$pval[4]
+pmod1.cr1.b3.pval <- pmod1_cr1$pval[4]
+pmod2.b3.pval <- pmod2$pval[4]
+pmod2.cr0.b3.pval <- pmod2_cr0$pval[4]
+pmod2.cr1.b3.pval <- pmod2_cr1$pval[4]
+pmod3.b3.pval <- pmod3$pval[4]
+pmod3.cr0.b3.pval <- pmod3_cr0$pval[4]
+pmod3.cr1.b3.pval <- pmod3_cr1$pval[4]
+pmod4.b3.pval <- pmod4$pval[4]
+pmod4.cr0.b3.pval <- pmod4_cr0$pval[4]
+pmod4.cr1.b3.pval <- pmod4_cr1$pval[4]
+
+
+
+# b1 SE
+pmod1.b1.se <- pmod1$se[2]
+pmod1.cr0.b1.se <- pmod1_cr0$se[2]
+pmod1.cr1.b1.se <- pmod1_cr1$se[2]
+pmod2.b1.se <- pmod2$se[2]
+pmod2.cr0.b1.se <- pmod2_cr0$se[2]
+pmod2.cr1.b1.se <- pmod2_cr1$se[2]
+pmod3.b1.se <- pmod3$se[2]
+pmod3.cr0.b1.se <- pmod3_cr0$se[2]
+pmod3.cr1.b1.se <- pmod3_cr1$se[2]
+pmod4.b1.se <- pmod4$se[2]
+pmod4.cr0.b1.se <- pmod4_cr0$se[2]
+pmod4.cr1.b1.se <- pmod4_cr1$se[2]
+
+
+# b2 SE
+pmod1.b2.se <- pmod1$se[3]
+pmod1.cr0.b2.se <- pmod1_cr0$se[3]
+pmod1.cr1.b2.se <- pmod1_cr1$se[3]
+pmod2.b2.se <- pmod2$se[3]
+pmod2.cr0.b2.se <- pmod2_cr0$se[3]
+pmod2.cr1.b2.se <- pmod2_cr1$se[3]
+pmod3.b2.se <- pmod3$se[3]
+pmod3.cr0.b2.se <- pmod3_cr0$se[3]
+pmod3.cr1.b2.se <- pmod3_cr1$se[3]
+pmod4.b2.se <- pmod4$se[3]
+pmod4.cr0.b2.se <- pmod4_cr0$se[3]
+pmod4.cr1.b2.se <- pmod4_cr1$se[3]
+
+
+
+# b3 SE
+pmod1.b3.se <- pmod1$se[4]
+pmod1.cr0.b3.se <- pmod1_cr0$se[4]
+pmod1.cr1.b3.se <- pmod1_cr1$se[4]
+pmod2.b3.se <- pmod2$se[4]
+pmod2.cr0.b3.se <- pmod2_cr0$se[4]
+pmod2.cr1.b3.se <- pmod2_cr1$se[4]
+pmod3.b3.se <- pmod3$se[4]
+pmod3.cr0.b3.se <- pmod3_cr0$se[4]
+pmod3.cr1.b3.se <- pmod3_cr1$se[4]
+pmod4.b3.se <- pmod4$se[4]
+pmod4.cr0.b3.se <- pmod4_cr0$se[4]
+pmod4.cr1.b3.se <- pmod4_cr1$se[4]
+
+
 # extract AIC
 pmod1.aic <- AIC(pmod1)
 pmod2.aic <- AIC(pmod2)
 pmod3.aic <- AIC(pmod3)
 pmod4.aic <- AIC(pmod4)
+
 
 
 
@@ -653,9 +742,27 @@ res <- data.frame(name = rep(name, 12),
                   b3_ci_ub = c(pmod1.b3.ci.ub, pmod2.b3.ci.ub, pmod3.b3.ci.ub, pmod4.b3.ci.ub,
                                pmod1.cr0.b3.ci.ub, pmod2.cr0.b3.ci.ub, pmod3.cr0.b3.ci.ub, pmod4.cr0.b3.ci.ub,
                                pmod1.cr1.b3.ci.ub, pmod2.cr1.b3.ci.ub, pmod3.cr1.b3.ci.ub, pmod4.cr1.b3.ci.ub),
+                  b1_pval = c(pmod1.b1.pval, pmod2.b1.pval, pmod3.b1.pval, pmod4.b1.pval,
+                              pmod1.cr0.b1.pval, pmod2.cr0.b1.pval, pmod3.cr0.b1.pval, pmod4.cr0.b1.pval,
+                              pmod1.cr1.b1.pval, pmod2.cr1.b1.pval, pmod3.cr1.b1.pval, pmod4.cr1.b1.pval),
+                  b2_pval = c(pmod1.b2.pval, pmod2.b2.pval, pmod3.b2.pval, pmod4.b2.pval,
+                              pmod1.cr0.b2.pval, pmod2.cr0.b2.pval, pmod3.cr0.b2.pval, pmod4.cr0.b2.pval,
+                              pmod1.cr1.b2.pval, pmod2.cr1.b2.pval, pmod3.cr1.b2.pval, pmod4.cr1.b2.pval),
+                  b3_pval = c(pmod1.b3.pval, pmod2.b3.pval, pmod3.b3.pval, pmod4.b3.pval,
+                              pmod1.cr0.b3.pval, pmod2.cr0.b3.pval, pmod3.cr0.b3.pval, pmod4.cr0.b3.pval,
+                              pmod1.cr1.b3.pval, pmod2.cr1.b3.pval, pmod3.cr1.b3.pval, pmod4.cr1.b3.pval),
+                  b1_se = c(pmod1.b1.se, pmod2.b1.se, pmod3.b1.se, pmod4.b1.se,
+                            pmod1.cr0.b1.se, pmod2.cr0.b1.se, pmod3.cr0.b1.se, pmod4.cr0.b1.se,
+                            pmod1.cr1.b1.se, pmod2.cr1.b1.se, pmod3.cr1.b1.se, pmod4.cr1.b1.se),
+                  b2_se = c(pmod1.b2.se, pmod2.b2.se, pmod3.b2.se, pmod4.b2.se,
+                            pmod1.cr0.b2.se, pmod2.cr0.b2.se, pmod3.cr0.b2.se, pmod4.cr0.b2.se,
+                            pmod1.cr1.b2.se, pmod2.cr1.b2.se, pmod3.cr1.b2.se, pmod4.cr1.b2.se),
+                  b3_se = c(pmod1.b3.se, pmod2.b3.se, pmod3.b3.se, pmod4.b3.se,
+                            pmod1.cr0.b3.se, pmod2.cr0.b3.se, pmod3.cr0.b3.se, pmod4.cr0.b3.se,
+                            pmod1.cr1.b3.se, pmod2.cr1.b3.se, pmod3.cr1.b3.se, pmod4.cr1.b3.se),
                   AIC = rep(c(pmod1.aic, pmod2.aic, pmod3.aic, pmod4.aic), 3)
 )
 
 
 # save the output according to the job array:
-save(list = "res", file = paste0("results/set1/res_", job, ".RDATA"))
+save(list = "res", file = paste0("results/res_", job, ".RDATA"))

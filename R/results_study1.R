@@ -373,11 +373,11 @@ sigma.mean <- res.c |>
 ## Estimate
 sigma2.u_plot_est_0.05 <-
   res.c |> 
-  filter(!model_type %in% c("FE") & sigma2.u == 0.05) |>  
+  filter(!model_type %in% c("FE", "RE") & sigma2.u == 0.05) |>  
   ggplot(aes(x=factor(model_type), y=sigma.u_est, color=model_type, fill=model_type)) + 
   stat_halfeye() +
-  scale_color_manual(values=col6mods[2:6], guide="none")+
-  scale_fill_manual(values=alpha(col6mods[2:6], 0.4), guide="none") +
+  scale_color_manual(values=col6mods[3:6], guide="none")+
+  scale_fill_manual(values=alpha(col6mods[3:6], 0.4), guide="none") +
   labs(title = TeX("$\\sigma^2_u = 0.05$"), x = "", y = TeX("$\\hat{\\sigma}^2_u$"))+
   geom_boxplot(width=0.4)+
   geom_hline(aes(yintercept = sigma2.u), colour="darkgray")+ 
@@ -388,11 +388,11 @@ sigma2.u_plot_est_0.05 <-
 
 sigma2.u_plot_est_0.3 <-
   res.c |> 
-  filter(!model_type %in% c("FE") & sigma2.u == 0.3) |>  
+  filter(!model_type %in% c("FE", "RE") & sigma2.u == 0.3) |>  
   ggplot(aes(x=factor(model_type), y=sigma.u_est, color=model_type, fill=model_type)) + 
   stat_halfeye() +
-  scale_color_manual(values=col6mods[2:6], guide="none")+
-  scale_fill_manual(values=alpha(col6mods[2:6], 0.4), guide="none") +
+  scale_color_manual(values=col6mods[3:6], guide="none")+
+  scale_fill_manual(values=alpha(col6mods[3:6], 0.4), guide="none") +
   labs(title = TeX("$\\sigma^2_u = 0.3$"), x = "", y = TeX("$\\hat{\\sigma}^2_u$"))+
   geom_boxplot(width=0.4)+
   geom_hline(aes(yintercept = sigma2.u), colour="darkgray")+ 
@@ -404,11 +404,11 @@ sigma2.u_plot_est_0.3 <-
 ### Bias 
 sigma2.u_plot_bias_0.05 <-
   res.c |> 
-  filter(!model_type %in% c("FE") & sigma2.u == 0.05) |>  
+  filter(!model_type %in% c("FE", "RE") & sigma2.u == 0.05) |>  
   ggplot(aes(x=factor(model_type), y=sigma2.u_bias, color=model_type, fill=model_type)) + 
   stat_halfeye() +
-  scale_color_manual(values=col6mods[2:6], guide="none")+
-  scale_fill_manual(values=alpha(col6mods[2:6], 0.4), guide="none") +
+  scale_color_manual(values=col6mods[3:6], guide="none")+
+  scale_fill_manual(values=alpha(col6mods[3:6], 0.4), guide="none") +
   labs(title = TeX("$\\sigma^2_u = 0.05$"), x = "", y = TeX("$\\hat{\\sigma}^2_u$ bias"))+
   geom_boxplot(width=0.4)+
   geom_hline(aes(yintercept = 0), colour="darkgray")+ 
@@ -419,11 +419,11 @@ sigma2.u_plot_bias_0.05 <-
 
 sigma2.u_plot_bias_0.3 <-
   res.c |> 
-  filter(!model_type %in% c("FE") & sigma2.u == 0.3) |>  
+  filter(!model_type %in% c("FE", "RE") & sigma2.u == 0.3) |>  
   ggplot(aes(x=factor(model_type), y=sigma2.u_bias, color=model_type, fill=model_type)) + 
   stat_halfeye() +
-  scale_color_manual(values=col6mods[2:6], guide="none")+
-  scale_fill_manual(values=alpha(col6mods[2:6], 0.4), guide="none") +
+  scale_color_manual(values=col6mods[3:6], guide="none")+
+  scale_fill_manual(values=alpha(col6mods[3:6], 0.4), guide="none") +
   labs(title = TeX("$\\sigma^2_u = 0.3$"), x = "", y = TeX("$\\hat{\\sigma}^2_u$ bias"))+
   geom_boxplot(width=0.4)+
   geom_hline(aes(yintercept = 0), colour="darkgray")+ 
@@ -435,11 +435,11 @@ sigma2.u_plot_bias_0.3 <-
 ### MSE
 sigma2.u_plot_mse_0.05 <-
   res.c |> 
-  filter(!model_type %in% c("FE") & sigma2.u == 0.05) |>  
+  filter(!model_type %in% c("FE", "RE") & sigma2.u == 0.05) |>  
   ggplot(aes(x=factor(model_type), y=sigma.u_mse, color=model_type, fill=model_type)) + 
   stat_halfeye() +
-  scale_color_manual(values=col6mods[2:6], guide="none")+
-  scale_fill_manual(values=alpha(col6mods[2:6], 0.4), guide="none") +
+  scale_color_manual(values=col6mods[3:6], guide="none")+
+  scale_fill_manual(values=alpha(col6mods[3:6], 0.4), guide="none") +
   labs(title = TeX("$\\sigma^2_u$=0.05"), 
        x = "", 
        y = TeX("$\\hat{\\sigma}^2_u$ MSE"))+
@@ -451,11 +451,11 @@ sigma2.u_plot_mse_0.05 <-
 
 sigma2.u_plot_mse_0.3 <-
   res.c |> 
-  filter(!model_type %in% c("FE") & sigma2.u == 0.3) |>  
+  filter(!model_type %in% c("FE", "RE") & sigma2.u == 0.3) |>  
   ggplot(aes(x=factor(model_type), y=sigma.u_mse, color=model_type, fill=model_type)) + 
   stat_halfeye() +
-  scale_color_manual(values=col6mods[2:6], guide="none")+
-  scale_fill_manual(values=alpha(col6mods[2:6], 0.4), guide="none") +
+  scale_color_manual(values=col6mods[3:6], guide="none")+
+  scale_fill_manual(values=alpha(col6mods[3:6], 0.4), guide="none") +
   labs(title = TeX("$\\sigma^2_u$=0.3"), 
        x = "", 
        y = TeX("$\\hat{\\sigma}^2_u$ MSE"))+

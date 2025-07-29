@@ -114,17 +114,27 @@ dat <- data.frame(name = name, scenario = scen, seed = seed, job_number = job,
 save(list = "dat", file = paste0("data/simdat_", job, ".RDATA"))
 
 
+
+
+
+
+
+
+
+
+
+
 ########### Run model 1: phylogenetic multilevel model  ----------------------------------------------
 
 # run model
 ptm <- proc.time()
 pmod1 <- try(rma.mv(yi,
-                   vi,
-                   random = list(~ 1 | species, ~ 1 | species.phylo, ~ 1 | study, ~ 1| id),
-                   R = list(species.phylo=P),
-                   test = "t",
-                   dfs = k.studies - 1), #default "residuals" (k-1), other option "contain" (k.studies-1)
-            silent = TRUE)
+                    vi,
+                    random = list(~ 1 | species, ~ 1 | species.phylo, ~ 1 | study, ~ 1| id),
+                    R = list(species.phylo=P),
+                    test = "t",
+                    dfs = k.studies - 1), #default "residuals" (k-1), other option "contain" (k.studies-1)
+             silent = TRUE)
 pmod1_time <- (proc.time() - ptm)[3]
 
 # if (inherits(pmod1, "try-error")){
@@ -140,27 +150,6 @@ pmod1_cr1 <- robust(pmod1, cluster = study, adjust=TRUE)
 
 
 
-######## testing: degrees of freedom
-
-# using residuals (k-1) = "residuals"
-# pmod.res <- rma.mv(yi,
-#                     vi,
-#                     random = list(~ 1 | species, ~ 1 | species.phylo, ~ 1 | study/id),
-#                     R = list(species.phylo=P),
-#                     test = "t",
-#                     dfs = "residual") #default , other option "contain" (k.studies-1)
-# 
-# # using contains (k.studies) = "contain"
-# pmod.contain <- rma.mv(yi,
-#                 vi,
-#                 random = list(~ 1 | species, ~ 1 | species.phylo, ~ 1 | study/id),
-#                 R = list(species.phylo=P),
-#                 test = "t",
-#                 dfs = "contain") #default "residuals" (k-1), other option "contain" (k.studies-1)
-# 
-
-
-
 
 ########### Run model 2: phylogenetic multilevel model with sampling VCV (rho.hat=0.2) -------------------------------
 
@@ -169,12 +158,12 @@ V <- vcalc(vi, cluster=study, obs=esid, data=dat, rho=0.2)
 
 ptm <- proc.time()
 pmod2 <- try(rma.mv(yi,
-                   V=V,
-                   random = list(~ 1 | species, ~ 1 | species.phylo, ~ 1 | study, ~ 1| id),
-                   R = list(species.phylo=P),
-                   test = "t",
-                   dfs = k.studies - 1), 
-            silent = TRUE)
+                    V=V,
+                    random = list(~ 1 | species, ~ 1 | species.phylo, ~ 1 | study, ~ 1| id),
+                    R = list(species.phylo=P),
+                    test = "t",
+                    dfs = k.studies - 1), 
+             silent = TRUE)
 pmod2_time <- (proc.time() - ptm)[3]
 
 # if (inherits(pmod2, "try-error")){
@@ -184,8 +173,12 @@ pmod2_time <- (proc.time() - ptm)[3]
 #   pmod2.comp.time[l] <- pmod2_time
 # }
 
-pmod2_cr0 <- robust(pmod2, cluster = study, adjust=FALSE)
-pmod2_cr1 <- robust(pmod2, cluster = study, adjust=TRUE)
+pmod2_cr0 <- robust(pmod3, cluster = study, adjust=FALSE)
+pmod2_cr1 <- robust(pmod3, cluster = study, adjust=TRUE)
+
+
+
+
 
 
 
@@ -541,7 +534,7 @@ res <- data.frame(name = rep(name, 15),
                              pmod1.cr1.cov, pmod2.cr1.cov, pmod3.cr1.cov, pmod4.cr1.cov, pmod5.cr1.cov), 
                   sigma.n_est = c(pmod1.sigma2.n, pmod2.sigma2.n, pmod3.sigma2.n, pmod4.sigma2.n, pmod5.sigma2.n,
                                   pmod1.cr0.sigma2.n, pmod2.cr0.sigma2.n, pmod3.cr0.sigma2.n, pmod4.cr0.sigma2.n, pmod5.cr0.sigma2.n,
-                                 pmod1.cr1.sigma2.n, pmod2.cr1.sigma2.n, pmod3.cr1.sigma2.n, pmod4.cr1.sigma2.n, pmod5.sigma2.n), 
+                                  pmod1.cr1.sigma2.n, pmod2.cr1.sigma2.n, pmod3.cr1.sigma2.n, pmod4.cr1.sigma2.n, pmod5.sigma2.n), 
                   sigma.n_mse = c(pmod1.sigma2.n.mse, pmod2.sigma2.n.mse, pmod3.sigma2.n.mse, pmod4.sigma2.n.mse, pmod5.sigma2.n.mse,
                                   pmod1.cr0.sigma2.n.mse, pmod2.cr0.sigma2.n.mse, pmod3.cr0.sigma2.n.mse, pmod4.cr0.sigma2.n.mse, pmod5.cr0.sigma2.n.mse,
                                   pmod1.cr1.sigma2.n.mse, pmod2.cr1.sigma2.n.mse, pmod3.cr1.sigma2.n.mse, pmod4.cr1.sigma2.n.mse, pmod5.sigma2.n.mse), 

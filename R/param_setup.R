@@ -68,8 +68,40 @@ scen.tab2$scenario <- rep(1:conds.2, each = repl)
 
 # save as csv file
 write.csv(scen.tab2, "output/study2/job_array_study2.csv", row.names = FALSE)
-write.csv(scen.tab2, "output/study2.sub/job_array_study2.csv", row.names = FALSE) ## for meta-regression sim, use exactly the same sim settings
 
 
 
+#################
+## STUDY 2.SUB ## -----------------------------------------------------------------------
+#################
+
+
+name.2s <- "study2.sub"
+
+# model parameters
+betas <- c(0, 0.2, 0.6)
+k.species <- c(40, 100)   # number of species (must be <= k.studies)
+sigma2.n <- c(0.3)  # variance of the species level random effect
+sigma2.p <- c(0.3)  # variance of phylogenetic random effect
+
+# make table of all scenarios
+scen.tab2.sub <- expand.grid(sim = sim, name = name.2s, k.studies = k.studies, 
+                         k.species = k.species, mu = mu, betas = betas, sigma2.n = sigma2.n,
+                         sigma2.p = sigma2.p, sigma2.s = sigma2.s, sigma2.u = sigma2.u,
+                         rho = rho)
+
+# only keep rows with the following c(k.studies, k.species) combination: c(20, 40), c(50, 100)
+library(dplyr)
+scen.tab2.sub <- scen.tab2.sub %>% 
+  filter((k.studies == 20 & k.species == 40) | (k.studies == 50 & k.species == 100))
+
+
+# add columns for to store results and job number
+scen.tab2.sub$save_location <- rep("/srv/scratch/z5394590/phylo_meta_sandwich/", each=nrow(scen.tab2.sub))
+scen.tab2.sub$job_number <- c(1:nrow(scen.tab2.sub))
+conds.2 <- 2 * length(sigma2.s) * length(sigma2.u) * length(sigma2.n) * length(sigma2.p)  * length(rho) * length(betas)
+scen.tab2.sub$scenario <- rep(1:conds.2, each = repl)
+
+# save as csv file
+write.csv(scen.tab2.sub, "output/study2.sub/job_array_study2.sub.csv", row.names = FALSE) ## NEW meta-regression sim settings (27/06/25)
 
