@@ -1,5 +1,5 @@
 ################################################################################
-# Plot results
+# Plot results - Study2
 ################################################################################
 
 load("~/PhD/2_MetaRVE/results/sims/all_results_study2.RDATA") ### change this to OSF or repo where i'll store large files

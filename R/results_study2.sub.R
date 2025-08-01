@@ -1,5 +1,5 @@
 ################################################################################
-# Plot results
+# Plot results - Study2.sub
 ################################################################################
 
 load("~/PhD/2_MetaRVE/results/sims/sim_results_study2.sub.RDATA")
@@ -7,7 +7,7 @@ results <- dat
 
 
 
-#------------- Load libraries
+#------------- Load libraries -----------------
 library(pacman)
 p_load(tidyverse, ggplot2, broom, here,
        cowplot, ggdist, patchwork,
@@ -16,7 +16,7 @@ p_load(tidyverse, ggplot2, broom, here,
 
 
 
-#------------- Formatting
+#------------- Formatting -------------------
 # set up colors
 col5mods <- c("#3CB371", "#FFD966", "#FFC845", "#FFB72A")
 
@@ -53,7 +53,15 @@ results$k.studies_lab <- factor(results$k.studies,
 
 
 
-#----------- Derive new variables
+#----------- Derive new variables -------------------
+
+# derive beta estimates bias
+results <- results |> 
+  mutate(b0_est_bias = b0_est - b0,
+         b1_est_bias = b1_est - b1,
+         b2_est_bias = b2_est - b2,
+         b3_est_bias = b3_est - b3)
+
 
 # derive MSE for model fixed coefficients
 results <- results |>
@@ -113,15 +121,24 @@ results <- results |>
 
 
 
-# derive sample variance of b0 estimate
+# derive sample variance
 sample_var <- results |> 
-  group_by(model, model_type, CR_method) |>
-  summarise(S2 = sum((b0_est - mean(b0_est))^2) / (length(b0_est) - 1)) |> 
-  ungroup()
+  group_by(model_type, rho, b0, b1, b2, b3) |> 
+  summarise(b0_mean = mean(b0_est, na.rm = TRUE),
+            b0_S2 = var(b0_est, na.rm = TRUE),
+            b1_mean = mean(b1_est, na.rm = TRUE),
+            b1_S2 = var(b1_est, na.rm = TRUE),
+            b2_mean = mean(b2_est, na.rm = TRUE),
+            b2_S2 = var(b2_est, na.rm = TRUE),
+            b3_mean = mean(b3_est, na.rm = TRUE),
+            b3_S2 = var(b3_est, na.rm = TRUE)) |> 
+  ungroup() |> 
+  arrange(rho)
 
 
 
-#------------- Model convergence
+
+#------------- Model convergence -------------------
 options(digits = 3, scipen = 5)
 ## convergence rate % and average comp.time of models per condition 
 convergence.summary <- results |> 
@@ -132,6 +149,24 @@ convergence.summary <- results |>
   select(-n_models) |> 
   arrange(k.studies) ##to order ascendinng by k.studies
 #print(xtable(convergence.summary, digits=c(0,0,2,2,2)), include.rownames=FALSE) ##save table for supporting information
+
+
+#------------- Model MCSE -------------------
+
+# derive the bias Monte Carlo SE (per model, method and condition) for all beta estimates
+mu_mcse <- sample_var |> 
+  group_by(model_type, rho, b0, b1, b2, b3) |> 
+  summarise(b0_mean = b0_mean,
+            b0_mcse = round(sqrt(b0_S2/n()),5),
+            b1_mean = b1_mean,
+            b1_mcse = round(sqrt(b1_S2/n()),5),
+            b2_mean = b2_mean,
+            b2_mcse = round(sqrt(b2_S2/n()),5),
+            b3_mean = b3_mean,
+            b3_mcse = round(sqrt(b3_S2/n()),5)) |> 
+  arrange(rho)
+#print(xtable(mu_mcse, digits=c(0, rep(1,6), rep(3,8))), include.rownames=FALSE) ##save table for supporting information
+
 
 
 
@@ -184,17 +219,100 @@ power <- results_power |>
 
 
 
+
+####################
+# b0 coeff --------------
+####################
+
+b0_est_bias_plot <- results |> 
+  filter(CR_method=="none") |>
+  ggplot(aes(x=factor(model_type), y=b0_est_bias, color=model_type, fill=model_type)) + 
+  stat_halfeye() +
+  scale_color_manual(values=col5mods, guide="none")+
+  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
+  labs(title=TeX("$\\hat{\\beta_{0}}$ bias"), x="", y = "")+
+  #scale_y_continuous(limit=c(-0.6, 1), breaks=round(seq(-0.6, 1, 0.2), 3)) +
+  geom_boxplot(width=0.4)+
+  geom_hline(yintercept=results$b0[1], colour="darkgray", linewidth=0.5)+
+  facet_grid(cols=vars(rho_lab),
+             #rows=vars(CR_method),
+             labeller=label_parsed) +
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+b0_mse_plot <- results |> 
+  filter(CR_method=="none") |>
+  ggplot(aes(x=factor(model_type), y=b0_mse, color=model_type, fill=model_type)) + 
+  stat_halfeye() +
+  scale_color_manual(values=col5mods, guide="none")+
+  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
+  #scale_y_continuous(limit=c(0, 0.6), breaks=round(seq(0, 0.6, 0.2), 3)) +
+  labs(title=TeX("$\\hat{\\beta_{0}}$ MSE"),x="", y = "")+
+  geom_boxplot(width=0.4)+
+  facet_grid(cols=vars(rho_lab),
+             #rows=vars(CR_method),
+             labeller=label_parsed) +
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+cov_plot.b0 <- cov |> 
+  filter(CR_method=="none") |>
+  ggplot(aes(x=factor(model_type), y=cov_prop_b0, color=model_type, fill=model_type)) + 
+  stat_halfeye() +
+  scale_color_manual(values=col5mods, guide="none")+
+  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
+  scale_y_continuous(limits=c(0.85, 1), breaks=seq(0.85, 1, 0.05))+
+  labs(title= TeX("Coverage rate of $\\hat{\\beta_{0}}$"),x="", y = TeX(""))+
+  geom_boxplot(width=0.4)+
+  geom_hline(yintercept=0.95, colour="darkgray", linewidth=0.6)+ 
+  facet_grid(cols=vars(rho_lab),
+             #rows=vars(CR_method),
+             labeller=label_parsed) +
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+#ggsave("output/study2.sub/cov_b0_crve.png", plot = cov_plot.b0, width = 9, height = 9)
+
+
+ci_plot.b0 <- results |> 
+  filter(CR_method=="none") |>
+  ggplot(aes(x=factor(model_type), y=b0_ci_width, color=model_type, fill=model_type)) + 
+  stat_halfeye() +
+  scale_color_manual(values=col5mods, guide="none")+
+  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
+  labs(title=TeX("Confidence interval width of $\\hat{\\beta_{0}}$"),x="", y = "")+
+  geom_boxplot(width=0.4)+
+  facet_grid(cols=vars(rho_lab),
+             #rows=vars(CR_method),
+             labeller=label_parsed) +
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+#ggsave("output/study2.sub/ci_width_b0_b.png", plot = ci_plot.b0, width = 10, height = 6)
+
+
+### Combine into Figure S.b0
+fig.beta.0 <- b0_est_bias_plot + b0_mse_plot + cov_plot.b0 + ci_plot.b0 +
+  plot_annotation(tag_levels='A')
+
+ggsave("output/study2.sub/Figures/figure_b0.png", plot = fig.beta.0, width = 11, height = 11)
+
+
+
+
+
+
 ####################
 # b1 coeff -----------------------------
 ####################
 
-b1_est_plot <- results |> 
+b1_est_bias_plot <- results |> 
   filter(CR_method=="none") |>
-  ggplot(aes(x=factor(model_type), y=b1_est, color=model_type, fill=model_type)) + 
+  ggplot(aes(x=factor(model_type), y=b1_est_bias, color=model_type, fill=model_type)) + 
   stat_halfeye() +
   scale_color_manual(values=col5mods, guide="none")+
   scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
-  labs(title=TeX("$\\hat{\\beta_{1}}$"), x="", y = "")+
+  labs(title=TeX("$\\hat{\\beta_{1}}$ bias"), x="", y = "")+
   #scale_y_continuous(limit=c(-0.6, 1), breaks=round(seq(-0.6, 1, 0.2), 3)) +
   geom_boxplot(width=0.4)+
   geom_hline(yintercept=results$b1[1], colour="darkgray", linewidth=0.5)+
@@ -223,7 +341,7 @@ b1_mse_plot <- results |>
 
 
 cov_plot.b1 <- cov |> 
-  #filter(CR_method=="none") |>
+  filter(CR_method=="none") |>
   ggplot(aes(x=factor(model_type), y=cov_prop_b1, color=model_type, fill=model_type)) + 
   stat_halfeye() +
   scale_color_manual(values=col5mods, guide="none")+
@@ -233,15 +351,15 @@ cov_plot.b1 <- cov |>
   geom_boxplot(width=0.4)+
   geom_hline(yintercept=0.95, colour="darkgray", linewidth=0.6)+ 
   facet_grid(cols=vars(rho_lab),
-             rows=vars(CR_method),
+             #rows=vars(CR_method),
              labeller=label_parsed) +
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("output/study2.sub/cov_b1_all.png", plot = cov_plot.b1, width = 9, height = 9)
+#ggsave("output/study2.sub/cov_b1_all.png", plot = cov_plot.b1, width = 9, height = 9)
 
 
 ci_plot.b1 <- results |> 
-  #filter(CR_method=="none") |>
+  filter(CR_method=="none") |>
   ggplot(aes(x=factor(model_type), y=b1_ci_width, color=model_type, fill=model_type)) + 
   stat_halfeye() +
   scale_color_manual(values=col5mods, guide="none")+
@@ -249,11 +367,11 @@ ci_plot.b1 <- results |>
   labs(title=TeX("Confidence interval width of $\\hat{\\beta_{1}}$"),x="", y = "")+
   geom_boxplot(width=0.4)+
   facet_grid(cols=vars(rho_lab),
-             rows=vars(CR_method),
+             #rows=vars(CR_method),
              labeller=label_parsed) +
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("output/study2.sub/ci_width_b1_all.png", plot = ci_plot.b1, width = 9, height = 9)
+#ggsave("output/study2.sub/ci_width_b1_all.png", plot = ci_plot.b1, width = 9, height = 9)
 
 
 typeI_plot.b1 <- typeI |> 
@@ -271,7 +389,7 @@ typeI_plot.b1 <- typeI |>
              labeller=label_parsed) +
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("output/study2.sub/typeI_b1_all.png", plot = typeI_plot.b1, width = 9, height = 9)
+#ggsave("output/study2.sub/typeI_b1_all.png", plot = typeI_plot.b1, width = 9, height = 9)
 
 
 
@@ -290,13 +408,13 @@ power_plot.b1 <- power |>
              labeller=label_parsed) +
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("output/study2.sub/power_b1_crve.png", plot = power_plot.b1, width = 9, height = 9)
+#ggsave("output/study2.sub/power_b1_crve.png", plot = power_plot.b1, width = 9, height = 9)
 
 
 
 
 ### Combine into Figure S.b1
-fig.b1 <- b1_est_plot + b1_mse_plot + cov_plot.b1 + ci_plot.b1 +
+fig.b1 <- b1_est_bias_plot + b1_mse_plot + cov_plot.b1 + ci_plot.b1 +
   plot_annotation(tag_levels='A')
 
 ggsave("output/study2.sub/Figures/figure_b1.png", plot = fig.b1, width = 11, height = 11)
@@ -308,13 +426,13 @@ ggsave("output/study2.sub/Figures/figure_b1.png", plot = fig.b1, width = 11, hei
 # b2 coeff ---------------------------------------------
 ###########
 
-b2_est_plot <- results |> 
+b2_est_bias_plot <- results |> 
   filter(CR_method=="none") |>
-  ggplot(aes(x=factor(model_type), y=b2_est, color=model_type, fill=model_type)) + 
+  ggplot(aes(x=factor(model_type), y=b2_est_bias, color=model_type, fill=model_type)) + 
   stat_halfeye() +
   scale_color_manual(values=col5mods, guide="none")+
   scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
-  labs(title=TeX("$\\hat{\\beta_{2}}$"), x="", y = "")+
+  labs(title=TeX("$\\hat{\\beta_{2}}$ bias"), x="", y = "")+
   #scale_y_continuous(limit=c(-0.6, 1), breaks=round(seq(-0.6, 1, 0.2), 3)) +
   geom_boxplot(width=0.4)+
   geom_hline(yintercept=results$b2[1], colour="darkgray", linewidth=0.5)+
@@ -343,17 +461,17 @@ b2_mse_plot <- results |>
 
 
 cov_plot.b2 <- cov |> 
-  #filter(CR_method=="none") |>
+  filter(CR_method=="none") |>
   ggplot(aes(x=factor(model_type), y=cov_prop_b2, color=model_type, fill=model_type)) + 
   stat_halfeye() +
   scale_color_manual(values=col5mods, guide="none")+
   scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
-  #scale_y_continuous(limits=c(0.85, 1), breaks=seq(0.85, 1, 0.05))+
+  scale_y_continuous(limits=c(0.85, 1), breaks=seq(0.85, 1, 0.05))+
   labs(title= TeX("Coverage rate of $\\hat{\\beta_{2}}$"),x="", y = TeX(""))+
   geom_boxplot(width=0.4)+
   geom_hline(yintercept=0.95, colour="darkgray", linewidth=0.6)+ 
   facet_grid(cols=vars(rho_lab),
-             rows=vars(CR_method),
+             #rows=vars(CR_method),
              labeller=label_parsed) +
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
@@ -361,7 +479,7 @@ ggsave("output/study2.sub/cov_b2_all.png", plot = cov_plot.b2, width = 9, height
 
 
 ci_plot.b2 <- results |> 
-  #filter(CR_method=="none") |>
+  filter(CR_method=="none") |>
   ggplot(aes(x=factor(model_type), y=b2_ci_width, color=model_type, fill=model_type)) + 
   stat_halfeye() +
   scale_color_manual(values=col5mods, guide="none")+
@@ -369,11 +487,11 @@ ci_plot.b2 <- results |>
   labs(title=TeX("Confidence interval width of $\\hat{\\beta_{2}}$"),x="", y = "")+
   geom_boxplot(width=0.4)+
   facet_grid(cols=vars(rho_lab),
-             rows=vars(CR_method),
+             #rows=vars(CR_method),
              labeller=label_parsed) +
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("output/study2.sub/ci_width_b2_all.png", plot = ci_plot.b2, width = 9, height = 9)
+#ggsave("output/study2.sub/ci_width_b2_all.png", plot = ci_plot.b2, width = 9, height = 9)
 
 
 
@@ -417,7 +535,7 @@ ggsave("output/study2.sub/power_b2_crve.png", plot = power_plot.b2, width = 9, h
 
 
 ### Combine into Figure S.b2
-fig.b2 <- b2_est_plot + b2_mse_plot + cov_plot.b2 + ci_plot.b2 +
+fig.b2 <- b2_est_bias_plot + b2_mse_plot + cov_plot.b2 + ci_plot.b2 +
   plot_annotation(tag_levels='A')
 
 ggsave("output/study2.sub/Figures/figure_b2.png", plot = fig.b2, width = 11, height = 11)
@@ -428,13 +546,13 @@ ggsave("output/study2.sub/Figures/figure_b2.png", plot = fig.b2, width = 11, hei
 # b3 coeff -----------------
 ##############
 
-b3_est_plot <- results |> 
+b3_est_bias_plot <- results |> 
   filter(CR_method=="none") |>
-  ggplot(aes(x=factor(model_type), y=b3_est, color=model_type, fill=model_type)) + 
+  ggplot(aes(x=factor(model_type), y=b3_est_bias, color=model_type, fill=model_type)) + 
   stat_halfeye() +
   scale_color_manual(values=col5mods, guide="none")+
   scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
-  labs(title=TeX("$\\hat{\\beta_{3}}$"), x="", y = "")+
+  labs(title=TeX("$\\hat{\\beta_{3}}$ bias"), x="", y = "")+
   #scale_y_continuous(limit=c(-0.6, 1), breaks=round(seq(-0.6, 1, 0.2), 3)) +
   geom_boxplot(width=0.4)+
   geom_hline(yintercept=results$b3[1], colour="darkgray", linewidth=0.5)+
@@ -506,7 +624,7 @@ typeI_plot.b3 <- typeI |>
   labs(title= TeX("Type I rate of $\\hat{\\beta_{3}}$"),x="", y = TeX(""))+
   geom_boxplot(width=0.4)+
   geom_hline(yintercept=0.05, colour="darkgray", linewidth=0.6)+ 
-  facet_grid(cols=vars(rho_lab),
+  facet_grid(cols=vars(b3),
              rows=vars(CR_method),
              labeller=label_parsed) +
   theme_bw()+
@@ -525,7 +643,7 @@ power_plot.b3 <- power |>
   labs(title= TeX("Power of $\\hat{\\beta_{3}}$"),x="", y = TeX(""))+
   geom_boxplot(width=0.4)+
   geom_hline(yintercept=0.8, colour="darkgray", linewidth=0.6)+ 
-  facet_grid(cols=vars(rho_lab),
+  facet_grid(cols=vars(b3),
              rows=vars(CR_method),
              labeller=label_parsed) +
   theme_bw()+
@@ -537,7 +655,7 @@ ggsave("output/study2.sub/power_b3_crve.png", plot = power_plot.b3, width = 9, h
 
 
 ### Combine into Figure S.b3
-fig.b3 <- b3_mse_plot + cov_plot.b3 + typeI_plot.b3 + power_plot.b3 +
+fig.b3 <- b3_est_bias_plot + b3_mse_plot + cov_plot.b3 + ci_plot.b3 +
   plot_annotation(tag_levels='A')
 
 ggsave("output/study2.sub/Figures/figure_b3.png", plot = fig.b3, width = 11, height = 11)
@@ -551,113 +669,6 @@ ggsave("output/study2.sub/Figures/figure_b3.png", plot = fig.b3, width = 11, hei
 ################################################################################
 
 
-
-
-## derive the bias Monte Carlo SE (per model, method and condition) for all estimates
-mu_mcse <- sample_var |> 
-  group_by(model_type, rho) |> 
-  summarise(b0_mean = b0_mean,
-            b0_mcse = round(sqrt(b0_S2/n()),5),
-            b1_mean = b1_mean,
-            b1_mcse = round(sqrt(b1_S2/n()),5),
-            b2_mean = b2_mean,
-            b2_mcse = round(sqrt(b2_S2/n()),5),
-            b3_mean = b3_mean,
-            b3_mcse = round(sqrt(b3_S2/n()),5)) |> 
-  arrange(rho)
-#print(xtable(mu_mcse, digits=c(0,2,2,3,3,3,3,3,3,3,3)), include.rownames=FALSE) ##save table for supporting information
-
-
-## derive the coverage Monte Carlo SE (per model, method and condition)
-cov_mcse <- cov.b |> 
-  group_by(model_type, rho) |> 
-  summarise(mean_cov = mean(cov_prop),  # Compute the mean coverage
-            cov_mcse = round(sqrt((mean_cov * (1 - mean_cov)) / n()), 5)) |>  # Apply MCSE formula
-  arrange(rho) |> 
-  select(-mean_cov)
-#print(xtable(cov_mcse, digits=c(0,2,2,4)), include.rownames=FALSE) ##save table for supporting information
-
-
-
-
-
-####################
-# b0 coeff 
-####################
-
-b0_est_plot <- results |> 
-  filter(CR_method=="none") |>
-  ggplot(aes(x=factor(model_type), y=b0_est, color=model_type, fill=model_type)) + 
-  stat_halfeye() +
-  scale_color_manual(values=col5mods, guide="none")+
-  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
-  labs(title=TeX("$\\hat{\\beta_{0}}$"), x="", y = "")+
-  #scale_y_continuous(limit=c(-0.6, 1), breaks=round(seq(-0.6, 1, 0.2), 3)) +
-  geom_boxplot(width=0.4)+
-  geom_hline(yintercept=results$b0[1], colour="darkgray", linewidth=0.5)+
-  facet_grid(cols=vars(rho_lab),
-             #rows=vars(CR_method),
-             labeller=label_parsed) +
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-
-b0_mse_plot <- results |> 
-  filter(CR_method=="none") |>
-  ggplot(aes(x=factor(model_type), y=b0_mse, color=model_type, fill=model_type)) + 
-  stat_halfeye() +
-  scale_color_manual(values=col5mods, guide="none")+
-  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
-  #scale_y_continuous(limit=c(0, 0.6), breaks=round(seq(0, 0.6, 0.2), 3)) +
-  labs(title=TeX("$\\hat{\\beta_{0}}$ MSE"),x="", y = "")+
-  geom_boxplot(width=0.4)+
-  facet_grid(cols=vars(rho_lab),
-             #rows=vars(CR_method),
-             labeller=label_parsed) +
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-#ggsave("output/study2.sub/b0_mse_b.png", plot = b0_mse_plot, width = 10, height = 6)
-
-
-cov_plot.b0 <- cov |> 
-  filter(CR_method=="none") |>
-  ggplot(aes(x=factor(model_type), y=cov_prop_b0, color=model_type, fill=model_type)) + 
-  stat_halfeye() +
-  scale_color_manual(values=col5mods, guide="none")+
-  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
-  scale_y_continuous(limits=c(0.85, 1), breaks=seq(0.85, 1, 0.05))+
-  labs(title= TeX("Coverage rate of $\\hat{\\beta_{0}}$"),x="", y = TeX(""))+
-  geom_boxplot(width=0.4)+
-  geom_hline(yintercept=0.95, colour="darkgray", linewidth=0.6)+ 
-  facet_grid(cols=vars(rho_lab),
-             #rows=vars(CR_method),
-             labeller=label_parsed) +
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-#ggsave("output/study2.sub/cov_b0_b.png", plot = cov_plot.b0, width = 10, height = 6)
-
-
-ci_plot.b0 <- results |> 
-  filter(CR_method=="none") |>
-  ggplot(aes(x=factor(model_type), y=b0_ci_width, color=model_type, fill=model_type)) + 
-  stat_halfeye() +
-  scale_color_manual(values=col5mods, guide="none")+
-  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
-  labs(title=TeX("Confidence interval width of $\\hat{\\beta_{0}}$"),x="", y = "")+
-  geom_boxplot(width=0.4)+
-  facet_grid(cols=vars(rho_lab),
-             #rows=vars(CR_method),
-             labeller=label_parsed) +
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-#ggsave("output/study2.sub/ci_width_b0_b.png", plot = ci_plot.b0, width = 10, height = 6)
-
-
-### Combine into Figure S.b0
-fig.beta.0 <- b0_est_plot + b0_mse_plot + cov_plot.b0 + ci_plot.b0 +
-  plot_annotation(tag_levels='A')
-
-ggsave("output/study2.sub/Figures/figure_beta_0.png", plot = fig.beta.0, width = 11, height = 11)
 
 
 ################################################################################
@@ -739,25 +750,3 @@ cov_plot.b3_crve <- cov |>
 ggsave("output/study2.sub/cov_b3_crve.png", plot = cov_plot.b3_crve, width = 9, height = 11)
 
 
-
-
-
-
-
-################################################################################
-
-# Study size and coverage rate 
-cov |> 
-  filter(CR_method=="none") |>
-ggplot(aes(x=factor(model_type), y=cov_prop_b1, color=model_type, fill=model_type)) + 
-  stat_halfeye() +
-  scale_color_manual(values=col5mods, guide="none")+
-  scale_fill_manual(values=alpha(col5mods, 0.4), guide="none") +
-  #scale_y_continuous(limits=c(0.92, 0.97), breaks=seq(0.92, 0.97, 0.05))+
-  labs(title="",x="", y = TeX("Coverage rate of $\\hat{\\beta_{1}}$"))+
-  geom_boxplot(width=0.4)+
-  geom_hline(yintercept=0.95, colour="darkgray", linewidth=0.6)+ 
-  facet_wrap(k.studies~rho_lab, labeller=label_parsed)+
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-#ggsave("output/study2.sub/cov_b1_b.png", plot = cov_plot.b1, width = 10, height = 6)
