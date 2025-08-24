@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-03-28">
+<meta name="dcterms.date" content="2025-08-24">
 
 <title>Case studies for: Modelling approaches for meta-analyses with dependent effect sizes in ecology and evolution</title>
 <style>
@@ -3249,7 +3249,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 28, 2025</p>
+      <p class="date">August 24, 2025</p>
     </div>
   </div>
   
@@ -3263,7 +3263,7 @@ window.Quarto = {
 
 <section id="overview" class="level1">
 <h1>Overview</h1>
-<p>Here we provide code to reproduce the results from the case studies in our manuscript “Modelling approaches for meta-analyses with dependent effect sizes in ecology and evolution”. This code can be use to produce similar analyses to find an appropriate sampling variance covariance matrix assuming a constant within-study correlation.</p>
+<p>Here we provide code to reproduce the results from the case studies in our manuscript “Modelling approaches for meta-analyses with dependent effect sizes in ecology and evolution”. This code can be used to produce similar analyses to find an appropriate sampling variance covariance matrix assuming a constant within-study correlation.</p>
 <p>We note three important and cautionary points.</p>
 <ol type="1">
 <li><p>For the purpose of illustrating the application of modelling approaches to handle dependent sampling errors, we reanalysed two published meta-analyses. The models have been simplified compared with those in the original studies, so the results are for illustration only and should not be used to draw substantive conclusions.</p></li>
@@ -3306,7 +3306,7 @@ window.Quarto = {
 <span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>                      <span class="at">s2.phylogeny =</span> <span class="fu">numeric</span>(), <span class="at">s2.species =</span> <span class="fu">numeric</span>(),</span>
 <span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>                      <span class="at">loglik =</span> <span class="fu">numeric</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Using a for loop we generate a model per each within study constant <span class="math inline">\(\rho\)</span> value. First, we derive the assumed sampling error <span class="math inline">\(\mathbf{V^*}\)</span>. Second, we fit a multilevel model with a t-distribution and using the adjusted degrees of freedom as recommended by (see <a href="https://wviechtb.github.io/metafor/reference/misc-recs.html">more recommended for metafor practices here</a>). Third, we obtain the cluster robust CR2 model estimates. Finally, we store the results within the specified dataframe.</p>
+<p>Using a for loop we generate a model per each within study constant <span class="math inline">\(\rho\)</span> value. First, we derive the assumed sampling error <span class="math inline">\(\mathbf{V^*}\)</span>. Second, we fit a multilevel model with a t-distribution and using the adjusted degrees of freedom as recommended by (see <a href="https://wviechtb.github.io/metafor/reference/misc-recs.html">more recommended practices here</a>). Third, we obtain the cluster robust CR2 model estimates. Finally, we store the results within the specified dataframe.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (rho <span class="cf">in</span> cor_values) {</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  </span>
@@ -3781,15 +3781,15 @@ window.Quarto = {
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>─ Session info ───────────────────────────────────────────────────────────────</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a> setting  value</span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a> version  R version <span class="dv">4</span>.<span class="fl">4.2</span> (<span class="dv">2024-10-31</span> ucrt)</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a> os       Windows <span class="dv">11</span> <span class="fu">x64</span> (build <span class="dv">22631</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a> os       Windows <span class="dv">11</span> <span class="fu">x64</span> (build <span class="dv">26100</span>)</span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a> system   x86_64, mingw32</span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a> ui       RTerm</span>
 <span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a> <span class="fu">language</span> (EN)</span>
 <span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a> collate  English_Australia.utf8</span>
 <span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a> ctype    English_Australia.utf8</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a> tz       Australia<span class="sc">/</span>Sydney</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a> date     <span class="dv">2025-03-28</span></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a> pandoc   <span class="fl">3.2</span> <span class="sc">@</span> C<span class="sc">:</span><span class="er">/</span>Program Files<span class="sc">/</span>RStudio<span class="sc">/</span>resources<span class="sc">/</span>app<span class="sc">/</span>bin<span class="sc">/</span>quarto<span class="sc">/</span>bin<span class="sc">/</span>tools<span class="sc">/</span> (via rmarkdown)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a> tz       America<span class="sc">/</span>Denver</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a> date     <span class="dv">2025-08-24</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a> pandoc   <span class="fl">3.4</span> <span class="sc">@</span> C<span class="sc">:</span><span class="er">/</span>Program Files<span class="sc">/</span>RStudio<span class="sc">/</span>resources<span class="sc">/</span>app<span class="sc">/</span>bin<span class="sc">/</span>quarto<span class="sc">/</span>bin<span class="sc">/</span>tools<span class="sc">/</span> (via rmarkdown)</span>
 <span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>─ Packages ───────────────────────────────────────────────────────────────────</span>
 <span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a> package      <span class="sc">*</span> version <span class="fu">date</span> (UTC) lib source</span>
@@ -3801,7 +3801,7 @@ window.Quarto = {
 <span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a> kableExtra   <span class="sc">*</span> <span class="dv">1</span>.<span class="fl">4.0</span>   <span class="dv">2024-01-24</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">4.3</span>)</span>
 <span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a> lattice      <span class="sc">*</span> <span class="fl">0.22</span><span class="dv">-6</span>  <span class="dv">2024-03-20</span> [<span class="dv">2</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">4.2</span>)</span>
 <span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a> Matrix       <span class="sc">*</span> <span class="fl">1.7</span><span class="dv">-1</span>   <span class="dv">2024-10-18</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">4.2</span>)</span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a> metafor      <span class="sc">*</span> <span class="fl">4.6</span><span class="dv">-0</span>   <span class="dv">2024-03-28</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">4.1</span>)</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a> metafor      <span class="sc">*</span> <span class="fl">4.8</span><span class="dv">-0</span>   <span class="dv">2025-01-28</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">4.3</span>)</span>
 <span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a> rotl         <span class="sc">*</span> <span class="dv">3</span>.<span class="fl">1.0</span>   <span class="dv">2023-06-15</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">4.2</span>)</span>
 <span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a> xtable       <span class="sc">*</span> <span class="fl">1.8</span><span class="dv">-4</span>   <span class="dv">2019-04-21</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">4.2</span>)</span>
 <span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a></span>
@@ -4309,7 +4309,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="fu"># Overview</span></span>
 <span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>Here we provide code to reproduce the results from the case studies in our manuscript &quot;Modelling approaches for meta-analyses with dependent effect sizes in ecology and evolution&quot;. This code can be use to produce similar analyses to find an appropriate sampling variance covariance matrix assuming a constant within-study correlation.</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>Here we provide code to reproduce the results from the case studies in our manuscript &quot;Modelling approaches for meta-analyses with dependent effect sizes in ecology and evolution&quot;. This code can be used to produce similar analyses to find an appropriate sampling variance covariance matrix assuming a constant within-study correlation.</span>
 <span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>We note three important and cautionary points. </span>
 <span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a></span>
@@ -4364,7 +4364,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-80"><a href="#cb10-80" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb10-81"><a href="#cb10-81" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-82"><a href="#cb10-82" aria-hidden="true" tabindex="-1"></a>Using a for loop we generate a model per each within study constant $\rho$ value. First, we derive the assumed sampling error $\mathbf{V^*}$. Second, we fit a multilevel model with a t-distribution and using the adjusted degrees of freedom as recommended by \texttt{metafor} (see <span class="co">[</span><span class="ot">more recommended for metafor practices here</span><span class="co">](https://wviechtb.github.io/metafor/reference/misc-recs.html)</span>). Third, we obtain the cluster robust CR2 model estimates. Finally, we store the results within the specified dataframe. </span>
+<span id="cb10-82"><a href="#cb10-82" aria-hidden="true" tabindex="-1"></a>Using a for loop we generate a model per each within study constant $\rho$ value. First, we derive the assumed sampling error $\mathbf{V^*}$. Second, we fit a multilevel model with a t-distribution and using the adjusted degrees of freedom as recommended by \texttt{metafor} (see <span class="co">[</span><span class="ot">more recommended practices here</span><span class="co">](https://wviechtb.github.io/metafor/reference/misc-recs.html)</span>). Third, we obtain the cluster robust CR2 model estimates. Finally, we store the results within the specified dataframe. </span>
 <span id="cb10-83"><a href="#cb10-83" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-86"><a href="#cb10-86" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb10-87"><a href="#cb10-87" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (rho <span class="cf">in</span> cor_values) {</span>
