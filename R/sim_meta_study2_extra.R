@@ -1,6 +1,8 @@
-###############################################################################
-# (STUDY 2) SIMULATION OF META-ANALYSIS MODELS
-###############################################################################
+##################################################################################################
+# (STUDY 2) SIMULATION OF META-ANALYSIS MODELS - Extra models to test for reviewer 1 comments 
+# 
+# Note: this is not included in final MS but it was used in the Reply letter to reviewer comments.
+###################################################################################################
 
 rm(list=ls())
 
