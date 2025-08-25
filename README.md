@@ -36,8 +36,12 @@ All simulations were run on the UNSW High Performance Computing (HPC) cluster **
 - **`/data/`**  
   Data used in the case studies, drawn from two published studies.
 
+## Simulated data and results
+
+All simulated data and results are available at the following OSF DOI: [10.17605/osf.io/dvc8m](https://osf.io/dvc8m/files/osfstorage) 
+
+
 ## Citation
 
-> *add citation*    
-> DOI: [Zenodo DOI]
+> *Williams, C., Yang, Y., Warton, D. I., & Nakagawa, S. (2025). Modelling approaches for meta-analyses with dependent effect sizes in ecology and evolution: A simulation study. Methods in Ecology and Evolution. XXX. DOI xxx*   
 
