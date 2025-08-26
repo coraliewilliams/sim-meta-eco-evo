@@ -19,7 +19,7 @@ editor_options:
 
 # Overview
 
-Here we provide code to reproduce the results from the case studies in our manuscript "Modelling approaches for meta-analyses with dependent effect sizes in ecology and evolution". This code can be used to produce similar analyses to find an appropriate sampling variance covariance matrix assuming a constant within-study correlation.
+Here we provide code to reproduce the results from the case studies in our manuscript "Modelling approaches for meta-analyses with dependent effect sizes in ecology and evolution: a simulation study". This code can be used to produce similar analyses to find an appropriate sampling variance covariance matrix assuming a constant within-study correlation.
 
 We note three important and cautionary points. 
 
