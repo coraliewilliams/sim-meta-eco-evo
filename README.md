@@ -4,7 +4,7 @@ This repository contains the scripts, data, and materials associated with the ma
 
 ## Simulation study overview
 
-We conducted three sub-studies based on different model specifications to assess alternative modelling approaches:  
+We conducted three sub-studies to assess different modelling approaches based on three broad model specifications:
 
 - **Study 1**: Meta-analysis models  
 - **Study 2**: Phylogenetic meta-analysis models  
