@@ -38,7 +38,7 @@ All simulations were run on the UNSW High Performance Computing (HPC) cluster **
 
 ## Simulated data and results
 
-All simulated data and results are available at the following OSF DOI: [10.17605/osf.io/dvc8m](https://osf.io/dvc8m/files/osfstorage) 
+All data and results from the simulation studies are provided in the [following repository](https://drive.google.com/drive/folders/1w0_pkHaw5WBjwTr1VT1ZdlIy8w9u9Q_n?usp=drive_link). Please note that these are large files.
 
 
 ## Citation
